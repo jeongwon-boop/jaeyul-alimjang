@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>아주유치원 알림장</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #f5f0ff; color: #333; max-width: 430px; margin: 0 auto; padding-bottom: 80px; }
+  .header { background: linear-gradient(135deg, #a78bfa, #ec4899); color: white; padding: 20px 16px 16px; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .school-name { font-size: 18px; font-weight: 700; }
+  .badge { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 3px 10px; font-size: 12px; }
+  .header-sub { font-size: 13px; opacity: 0.85; }
+
+  /* Bottom nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: white; border-top: 1px solid #e8e0ff; display: flex; z-index: 100; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px 8px; cursor: pointer; font-size: 10px; color: #aaa; gap: 3px; }
+  .nav-item.active { color: #7c3aed; }
+  .nav-icon { font-size: 20px; }
+
+  .page { display: none; padding: 14px; }
+  .page.active { display: block; }
+  .card { background: white; border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card-title { font-size: 13px; font-weight: 700; color: #7c3aed; margin-bottom: 10px; }
+
+  /* 홈 */
+  .today-banner { background: linear-gradient(135deg, #fdf2f8, #ede9fe); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+  .today-date { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .today-title { font-size: 16px; font-weight: 700; color: #6d28d9; }
+  .todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f3f0ff; }
+  .todo-item:last-child { border-bottom: none; }
+  .todo-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #c4b5fd; display: flex; align-items: center; justify-content: center; flex: none; cursor: pointer; font-size: 12px; background: white; transition: all .2s; }
+  .todo-check.done { background: #7c3aed; border-color: #7c3aed; color: white; }
+  .todo-text { flex: 1; }
+  .todo-title { font-size: 13px; font-weight: 600; color: #333; }
+  .todo-title.done { text-decoration: line-through; color: #aaa; }
+  .todo-desc { font-size: 11px; color: #888; margin-top: 2px; line-height: 1.5; }
+  .todo-deadline { display: inline-block; font-size: 10px; background: #fee2e2; color: #dc2626; border-radius: 6px; padding: 1px 6px; margin-top: 3px; }
+  .todo-deadline.ok { background: #dcfce7; color: #16a34a; }
+
+  /* 식단 */
+  .month-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .month-tab { flex: 1; padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 600; background: #f3e8ff; color: #7c3aed; cursor: pointer; text-align: center; }
+  .month-tab.active { background: #7c3aed; color: white; }
+  .month-panel { display: none; }
+  .month-panel.active { display: block; }
+  .week-tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+  .week-tab { flex: none; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #f3e8ff; color: #7c3aed; cursor: pointer; white-space: nowrap; }
+  .week-tab.active { background: #7c3aed; color: white; }
+  .week-panel { display: none; }
+  .week-panel.active { display: block; }
+  .meal-day-card { background: #fdf4ff; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .meal-day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .meal-day-label { font-size: 14px; font-weight: 700; color: #6d28d9; }
+  .meal-kcal { font-size: 11px; color: #999; }
+  .meal-items { font-size: 12.5px; color: #444; line-height: 1.9; }
+  .snack-box { background: #fff7ed; border-radius: 8px; padding: 6px 10px; margin-top: 6px; font-size: 12px; color: #b45309; }
+  .allergy-note { font-size: 11px; color: #bbb; text-align: center; margin-top: 4px; }
+  .update-hint { font-size: 12px; color: #a78bfa; text-align: center; padding: 16px; }
+
+  /* 주간계획 */
+  .info-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .info-chip { background: #f3e8ff; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; }
+  .activity-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f3f0ff; font-size: 13px; }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-label { background: #ede9fe; color: #5b21b6; border-radius: 6px; padding: 2px 7px; font-size: 11px; font-weight: 600; white-space: nowrap; min-width: 54px; text-align: center; }
+  .activity-content { line-height: 1.5; color: #444; }
+  .day-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
+  .day-tab { flex: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #f3e8ff; color: #7c3aed; cursor: pointer; }
+  .day-tab.active { background: #7c3aed; color: white; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+  .special-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f5f0ff; }
+  .special-item:last-child { border-bottom: none; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #a78bfa; flex: none; }
+
+  /* 알림 */
+  .notice-item { padding: 10px 0; border-bottom: 1px solid #f0ebff; font-size: 13px; line-height: 1.7; color: #444; }
+  .notice-item:last-child { border-bottom: none; }
+  .highlight { background: #fff3cd; border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-top: 8px; }
+
+  /* 영어 */
+  .english-box { background: linear-gradient(135deg, #dbeafe, #e0e7ff); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .big-letter { font-size: 48px; font-weight: 900; color: #3b82f6; text-align: center; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="school-name">🌸 아주유치원</div>
+    <div class="badge">3세반</div>
+  </div>
+  <div class="header-sub" id="headerDate"></div>
+</div>
+
+<!-- 홈 -->
+<div class="page active" id="page-home">
+  <div class="today-banner">
+    <div class="today-date" id="todayDate"></div>
+    <div class="today-title">이번 주 할 일 체크리스트 ✅</div>
+  </div>
+  <div class="card">
+    <div class="card-title">📌 챙겨야 할 것들</div>
+    <div id="todoList">
+      <div class="todo-item">
+        <div class="todo-check" onclick="toggleTodo(this)"></div>
+        <div class="todo-text">
+          <div class="todo-title">🌱 꽃씨 보내기</div>
+          <div class="todo-desc">긍정반 친구들이 심고 싶은 꽃씨를 준비해서 보내주세요. 반드시 이름 기재!</div>
+          <span class="todo-deadline">⏰ 3월 30일(월)까지</span>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-check" onclick="toggleTodo(this)"></div>
+        <div class="todo-text">
+          <div class="todo-title">🍽️ 인성리더 미션 사진 보내기</div>
+          <div class="todo-desc">반찬을 골고루 먹는 모습 사진 찍어서 교사에게 전송</div>
+          <span class="todo-deadline ok">📅 이번 주 중</span>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-check" onclick="toggleTodo(this)"></div>
+        <div class="todo-text">
+          <div class="todo-title">📝 학부모 상담 신청서 제출</div>
+          <div class="todo-desc">'1학기 학부모 상담 신청서' + '개별 상담 설문지' 작성해서 유치원에 제출</div>
+          <span class="todo-deadline">⏰ 4월 1일(수)까지</span>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-check" onclick="toggleTodo(this)"></div>
+        <div class="todo-text">
+          <div class="todo-title">📚 영어 스토리북 확인</div>
+          <div class="todo-desc">이번 주 Letter: Aa / 단어: at, hat, mat, splat</div>
+          <span class="todo-deadline ok">📅 이번 주</span>
+        </div>
+      </div>
+      <div class="todo-item">
+        <div class="todo-check" onclick="toggleTodo(this)"></div>
+        <div class="todo-text">
+          <div class="todo-title">🌸 금요일 꽃씨 심기 활동</div>
+          <div class="todo-desc">4월 3일(금) 꽃씨 심기 행사 — 꽃씨 미리 전달 필요</div>
+          <span class="todo-deadline">⏰ 4월 3일(금)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🗓️ 이번 주 안전교육</div>
+    <div class="activity-item"><div class="activity-label">수 1일</div><div class="activity-content">폭력/신변 안전교육</div></div>
+    <div class="activity-item"><div class="activity-label">금 3일</div><div class="activity-content">소방/응급 안전교육 + 꽃씨 심기<br><span style="font-size:11px;color:#e11d48">⏰ 도보 등원 시 10시까지!</span></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🌸 4월 긍정반 행사 일정</div>
+    <div class="activity-item"><div class="activity-label" style="min-width:64px">4/2 목</div><div class="activity-content">🌱 식목일 행사 — 화분꾸미기 / 꽃씨 심기</div></div>
+    <div class="activity-item"><div class="activity-label" style="min-width:64px">4/8 수</div><div class="activity-content">🏥 1학기 신체검사</div></div>
+    <div class="activity-item"><div class="activity-label" style="min-width:64px">4/9 목</div><div class="activity-content">💛 옐로우 데이 (전체)<br><span style="font-size:11px;color:#888">골통맞추기·노란나라·컵쌓기놀이·포토존 사진촬영</span></div></div>
+    <div class="activity-item"><div class="activity-label" style="min-width:64px">4/17 금</div><div class="activity-content">🌳 능안공원 자연물 놀이</div></div>
+    <div class="activity-item"><div class="activity-label" style="min-width:64px">4/21 화</div><div class="activity-content">🌿 모종심기 (전체)<br><span style="font-size:11px;color:#888">방울토마토·상추·고추·가지·오이</span></div></div>
+    <div class="activity-item"><div class="activity-label" style="min-width:64px">4/29 수</div><div class="activity-content">👫 우정리더십의 날 — Twin Day! (전체)<br><span style="font-size:11px;color:#888">나와 친구가 좋아하는 색깔 의상·소품</span></div></div>
+    <div class="activity-item"><div class="activity-label" style="min-width:64px">4/30 목</div><div class="activity-content">🏅 우정리더십 메달수여식 (전체)</div></div>
+    <div style="font-size:11px;color:#bbb;margin-top:8px;text-align:center">날씨·상황에 따라 일정 변경될 수 있어요</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📞 1학기 학부모 상담 안내</div>
+    <div style="font-size:13px;color:#444;line-height:1.8">
+      📅 <b>4월 6일(월) ~ 4월 17일(금)</b><br>
+      전화 상담 · 10분 이내 진행<br>
+      <span style="color:#dc2626">⏰ 상담 신청서 + 설문지 → <b>4월 1일(수)까지</b> 유치원 제출</span>
+    </div>
+  </div>
+</div>
+
+<!-- 식단 -->
+<div class="page" id="page-meal">
+  <div class="month-tabs">
+    <div class="month-tab active" onclick="showMonth(this,'m4')">4월</div>
+    <div class="month-tab" onclick="showMonth(this,'m5')">5월</div>
+    <div class="month-tab" onclick="showMonth(this,'m6')">6월</div>
+  </div>
+
+  <!-- 4월 -->
+  <div class="month-panel active" id="m4">
+    <div class="week-tabs">
+      <div class="week-tab active" onclick="showWeek(this,'w4_1')">1주 4/1~3</div>
+      <div class="week-tab" onclick="showWeek(this,'w4_2')">2주 4/6~10</div>
+      <div class="week-tab" onclick="showWeek(this,'w4_3')">3주 4/13~17</div>
+      <div class="week-tab" onclick="showWeek(this,'w4_4')">4주 4/20~24</div>
+      <div class="week-tab" onclick="showWeek(this,'w4_5')">5주 4/27~30</div>
+    </div>
+    <div class="week-panel active" id="w4_1">
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/1 (수)</div><div class="meal-kcal">418kcal</div></div><div class="meal-items">쌀밥 · 근대된장국 · 소고기버섯불고기 · 청포묵김무침 · 아몬드멸치조림 · 깍두기 · 어린이쥬스</div><div class="snack-box">🍠 간식: 고구마맛탕, 요구르트</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/2 (목)</div><div class="meal-kcal">484kcal</div></div><div class="meal-items">귀리밥 · 육개장 · 마파두부 · 비엔나소시지야채볶음 · 오이나물 · 배추김치 · 어린이우유</div><div class="snack-box">🍝 간식: 토마토스파게티</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/3 (금)</div><div class="meal-kcal">422kcal</div></div><div class="meal-items">카레라이스 · 미소장국 · 치킨너겟/머스타드소스 · 단무지무침 · 제철과일(오렌지) · 배추김치 · 짜요짜요</div><div class="snack-box">🍜 간식: 잔치국수</div></div>
+      <div class="allergy-note">① 난류 ② 우유 ⑤ 밀 ⑥ 대두 ⑨ 돼지고기 ⑩ 쇠고기</div>
+    </div>
+    <div class="week-panel" id="w4_2">
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/6 (월)</div><div class="meal-kcal">404kcal</div></div><div class="meal-items">기장밥 · 북어채콩나물국 · 돼지갈비찜 · 양배추쌈/쌈장 · 미역줄기볶음 · 배추김치 · 바나나우유</div><div class="snack-box">🥔 간식: 감자튀김/케찹, 석류쥬스</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/7 (화)</div><div class="meal-kcal">516kcal</div></div><div class="meal-items">쌀밥 · 순살감자탕 · 야채계란말이 · 애호박건새우볶음 · 맛살숙주나물무침 · 깍두기 · 요거트</div><div class="snack-box">🍓 간식: 딸기쨈샌드위치</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/8 (수)</div><div class="meal-kcal">413kcal</div></div><div class="meal-items">흑미밥 · 쑥갓어묵국 · 생선까스·타르타르소스 · 요거트생과일샐러드 · 명엽채조림 · 배추김치 · 어린이쥬스</div><div class="snack-box">🍱 간식: 유부초밥</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/9 (목)</div><div class="meal-kcal">438kcal</div></div><div class="meal-items">쌀밥 · 얼갈이된장국 · 함박스테이크/소스 · 콩나물당근무침 · 불어묵조림 · 배추김치 · 어린이우유</div><div class="snack-box">🍚 간식: 김가루주먹밥</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/10 (금)</div><div class="meal-kcal">484kcal</div></div><div class="meal-items">베이컨김치볶음밥 · 배추된장국 · 김말이튀김 · 돌김자반 · 제철과일(파인애플) · 깍두기 · 짜요짜요</div><div class="snack-box">🥟 간식: 야채수제비</div></div>
+    </div>
+    <div class="week-panel" id="w4_3">
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/13 (월)</div><div class="meal-kcal">407kcal</div></div><div class="meal-items">쌀밥 · 소고기미역국 · 닭강정 · 시금치나물무침 · 건파래무침 · 배추김치 · 초코우유</div><div class="snack-box">🌭 간식: 핫도그/케찹</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/14 (화)</div><div class="meal-kcal">419kcal</div></div><div class="meal-items">현미밥 · 부대찌개 · 한식잡채 · 잔멸치땅콩볶음 · 근대나물 · 배추김치 · 요거트</div><div class="snack-box">🍢 간식: 궁중떡볶이</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/15 (수)</div><div class="meal-kcal">517kcal</div></div><div class="meal-items">쌀밥 · 우거지된장국 · 돈가스+소스 · 깻잎나물무침 · 우엉조림 · 깍두기 · 어린이쥬스</div><div class="snack-box">🍠 간식: 찐고구마, 요구르트</div></div>
+      <div class="update-hint">📋 16일(목)·17일(금) 식단은 사진에서 확인이 어려워요.<br>식단표 받으시면 알려주세요!</div>
+    </div>
+    <div class="week-panel" id="w4_4">
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/20 (월)</div><div class="meal-kcal">433kcal</div></div><div class="meal-items">쌀밥 · 팽이버섯된장국 · 제육볶음 · 양배추쌈/쌈장 · 아몬드연근조림 · 배추김치 · 딸기우유</div><div class="snack-box">🥒 간식: 애호박칼국수</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/21 (화)</div><div class="meal-kcal">419kcal</div></div><div class="meal-items">보리밥 · 건새우아욱국 · 오리고기부추볶음 · 무쌈/머스타드소스 · 콩나물무침 · 깍두기 · 요거트</div><div class="snack-box">🧀 간식: 치즈스틱, 요구르트</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/22 (수)</div><div class="meal-kcal">455kcal</div></div><div class="meal-items">쌀밥 · 안매운참치김칫국 · 돈육메추리알조림 · 브로콜리숙회 · 진미채볶음 · 깍두기 · 어린이쥬스</div><div class="snack-box">🐟 간식: 어묵탕</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/23 (목)</div><div class="meal-kcal">410kcal</div></div><div class="meal-items">귀리밥 · 어묵국 · 치즈계란말이 · 참나물무침 · 들기름김구이 · 깍두기 · 어린이우유</div><div class="snack-box">🎂 간식: 핫케익/주스</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/24 (금)</div><div class="meal-kcal">407kcal</div></div><div class="meal-items">삼색비빔밥 · 팽이버섯두부된장국 · 고기완자 · 무말랭이무침 · 제철과일(방울토마토) · 배추김치 · 짜요짜요</div><div class="snack-box">🍱 간식: 후리가케주먹밥, 보리차</div></div>
+    </div>
+    <div class="week-panel" id="w4_5">
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/27 (월)</div><div class="meal-kcal">414kcal</div></div><div class="meal-items">검은콩밥 · 두부들깨탕 · 레몬탕수육 · 돌김자반 · 오이미역초무침 · 깍두기 · 초코우유</div><div class="snack-box">🍠 간식: 찰고구마볼, 요구르트</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/28 (화)</div><div class="meal-kcal">467kcal</div></div><div class="meal-items">쌀밥 · 삼색수제비국 · 닭가슴살고구마조림 · 고사리나물 · 감자채햄볶음 · 배추김치 · 요거트</div><div class="snack-box">🥟 간식: 탕수물만두, 쥬스</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/29 (수)</div><div class="meal-kcal">405kcal</div></div><div class="meal-items">현미밥 · 맑은콩나물국 · 돼지고기간장불고기 · 실곤약야채무침 · 숙주맛살무침 · 깍두기 · 어린이쥬스</div><div class="snack-box">🍯 간식: 꿀호떡, 요구르트</div></div>
+      <div class="meal-day-card"><div class="meal-day-header"><div class="meal-day-label">4/30 (목)</div><div class="meal-kcal">-</div></div><div class="meal-items">쌀밥 · 된장찌개 · 소고기당면볶음 · 채소어묵볶음 · 미나리나물 · 배추김치 · 어린이우유</div><div class="snack-box">🍢 간식: 안매운떡볶이</div></div>
+    </div>
+  </div>
+
+  <!-- 5월 -->
+  <div class="month-panel" id="m5">
+    <div class="update-hint">📋 5월 식단표를 받으시면 사진을 올려주세요!<br>바로 업데이트해드릴게요 🌿</div>
+  </div>
+
+  <!-- 6월 -->
+  <div class="month-panel" id="m6">
+    <div class="update-hint">📋 6월 식단표를 받으시면 사진을 올려주세요!<br>바로 업데이트해드릴게요 ☀️</div>
+  </div>
+</div>
+
+<!-- 주간계획 -->
+<div class="page" id="page-plan">
+  <div class="card">
+    <div class="card-title">📋 이번 주 주제 (3/30~4/3)</div>
+    <div class="info-row">
+      <div class="info-chip"><span>주제</span>봄이 왔어요</div>
+      <div class="info-chip"><span>인성</span>우정 리더십</div>
+    </div>
+    <div class="info-row">
+      <div class="info-chip"><span>기본생활</span>스스로 밥을 먹어요</div>
+    </div>
+    <div style="font-size:12px;color:#888;margin-top:4px;line-height:1.6">
+      · 봄이 되어 달라진 날씨의 특징과 생활의 변화를 알아본다<br>
+      · 다양한 방법으로 봄 날씨의 특징을 경험한다
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📚 교육 및 활동</div>
+    <div class="activity-item"><div class="activity-label">의사소통</div><div class="activity-content">칭찬 프로젝트 / 봄에 볼 수 있는 다양한 꽃들</div></div>
+    <div class="activity-item"><div class="activity-label">예술경험</div><div class="activity-content">나무 접기 / 봄 나무 꾸미기</div></div>
+    <div class="activity-item"><div class="activity-label">자연탐구</div><div class="activity-content">(탐구) 씨앗을 심어요</div></div>
+    <div class="activity-item"><div class="activity-label">음률</div><div class="activity-content">(음악) 씨앗 / (음률) 비발디 사계 '봄' 감상하기</div></div>
+    <div class="activity-item"><div class="activity-label">쌓기/역할</div><div class="activity-content">봄 꽃밭을 만들어요 / 봄 꽃 가게 놀이</div></div>
+    <div class="activity-item"><div class="activity-label">신체/건강</div><div class="activity-content">봄 바람이 불어요 / 봄에 입는 옷을 알아요</div></div>
+    <div class="activity-item"><div class="activity-label">바깥놀이</div><div class="activity-content">따뜻한 봄의 햇살을 느껴보아요</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 요일별 이야기·동화</div>
+    <div class="day-tabs">
+      <div class="day-tab active" onclick="showDay(this,'d1')">월 30</div>
+      <div class="day-tab" onclick="showDay(this,'d2')">화 31</div>
+      <div class="day-tab" onclick="showDay(this,'d3')">수 1</div>
+      <div class="day-tab" onclick="showDay(this,'d4')">목 2</div>
+      <div class="day-tab" onclick="showDay(this,'d5')">금 3</div>
+    </div>
+    <div class="day-panel active" id="d1"><div class="special-item"><div class="dot"></div>이야기: 주말 지낸 이야기</div><div class="special-item"><div class="dot"></div>동화: 누가 내 머리에 똥 쌌어?</div><div class="special-item"><div class="dot"></div>🎉 애국조회</div></div>
+    <div class="day-panel" id="d2"><div class="special-item"><div class="dot"></div>이야기: 봄이 되어 달라진 것들</div><div class="special-item"><div class="dot"></div>동화: 이것 봐 여기 봄이 왔어</div><div class="special-item"><div class="dot"></div>♥ 코알라 놀이터</div></div>
+    <div class="day-panel" id="d3"><div class="special-item"><div class="dot"></div>이야기: 식목일을 알아보아요</div><div class="special-item"><div class="dot"></div>동화: 나는 누구일까요?</div><div class="special-item"><div class="dot"></div>⚠️ 폭력/신변 안전교육</div></div>
+    <div class="day-panel" id="d4"><div class="special-item"><div class="dot"></div>이야기: 건강한 봄을 보내는 방법</div><div class="special-item"><div class="dot"></div>동화: 나만 남은거야?</div><div class="special-item"><div class="dot"></div>♥ 두더지 놀이터</div></div>
+    <div class="day-panel" id="d5"><div class="special-item"><div class="dot"></div>동화: 꽃 요정의 산책</div><div class="special-item"><div class="dot"></div>🌸 꽃씨 심기 활동</div><div class="special-item"><div class="dot"></div>🚒 소방/응급 안전교육</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🧩 몬테소리</div>
+    <div class="activity-item"><div class="activity-label">언어</div><div class="activity-content">친구에게 내 기분을 말해요</div></div>
+    <div class="activity-item"><div class="activity-label">감각</div><div class="activity-content">단추 끼우기</div></div>
+  </div>
+</div>
+
+<!-- 영어 -->
+<div class="page" id="page-english">
+  <div class="card">
+    <div class="card-title">🇺🇸 이번 주 영어</div>
+    <div class="english-box">
+      <div style="font-size:14px;font-weight:700;color:#1e40af;margin-bottom:6px">Phonics · Story Telling · Play & Talk ABC</div>
+      <div class="big-letter">Aa</div>
+      <div style="font-size:13px;color:#1e3a8a;line-height:1.8">📖 <b>Letter Sound:</b> a<br>✏️ <b>Words:</b> at, hat, mat, splat<br>📚 <b>Story Book:</b> aA</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 특성화 일정</div>
+    <div class="activity-item"><div class="activity-label">월 30</div><div class="activity-content">AI 디지털 메타인지 + 과학</div></div>
+    <div class="activity-item"><div class="activity-label">화 31</div><div class="activity-content">AI 디지털 메타인지</div></div>
+    <div class="activity-item"><div class="activity-label">수 1</div><div class="activity-content">Special (한글, 수/음악/체육)</div></div>
+    <div class="activity-item"><div class="activity-label">목 2</div><div class="activity-content">AI 디지털 메타인지</div></div>
+    <div class="activity-item"><div class="activity-label">금 3</div><div class="activity-content">AI 디지털 메타인지</div></div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="showPage('home', this)"><div class="nav-icon">🐰</div>홈</div>
+  <div class="nav-item" onclick="showPage('meal', this)"><div class="nav-icon">🍙</div>식단</div>
+  <div class="nav-item" onclick="showPage('plan', this)"><div class="nav-icon">🌈</div>주간계획</div>
+  <div class="nav-item" onclick="showPage('english', this)"><div class="nav-icon">🐇</div>영어</div>
+</div>
+
+<script>
+  // 날짜 표시
+  const now = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  document.getElementById('headerDate').textContent = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+  document.getElementById('todayDate').textContent = `${now.getMonth()+1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
+
+  function showPage(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    el.classList.add('active');
+  }
+  function showMonth(el, id) {
+    const wrap = el.closest('.page');
+    wrap.querySelectorAll('.month-panel').forEach(p => p.classList.remove('active'));
+    wrap.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+  }
+  function showWeek(el, id) {
+    const wrap = el.closest('.month-panel');
+    wrap.querySelectorAll('.week-panel').forEach(p => p.classList.remove('active'));
+    wrap.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+  }
+  function showDay(el, id) {
+    el.closest('.card').querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    el.closest('.card').querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+  }
+  function toggleTodo(el) {
+    el.classList.toggle('done');
+    const title = el.nextElementSibling.querySelector('.todo-title');
+    title.classList.toggle('done');
+    el.textContent = el.classList.contains('done') ? '✓' : '';
+  }
+
+  // 식단 자동 선택: 현재 날짜 기준 월/주차 매칭
+  const weekRanges = [
+    { month: 'm4', week: 'w4_1', start: '2026-04-01', end: '2026-04-03' },
+    { month: 'm4', week: 'w4_2', start: '2026-04-06', end: '2026-04-10' },
+    { month: 'm4', week: 'w4_3', start: '2026-04-13', end: '2026-04-17' },
+    { month: 'm4', week: 'w4_4', start: '2026-04-20', end: '2026-04-24' },
+    { month: 'm4', week: 'w4_5', start: '2026-04-27', end: '2026-04-30' },
+    // 5월, 6월 주차 추가 시 여기에 추가
+  ];
+
+  (function autoSelectMealWeek() {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    // 주말이면 다음 주 월요일 기준으로 매칭
+    let matchDate = todayStr;
+    const dayOfWeek = today.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      const nextMon = new Date(today);
+      nextMon.setDate(today.getDate() + (dayOfWeek === 0 ? 1 : 2));
+      matchDate = nextMon.toISOString().slice(0, 10);
+    }
+
+    const matched = weekRanges.find(w => matchDate >= w.start && matchDate <= w.end);
+    if (!matched) return;
+
+    // 월 탭 활성화
+    const mealPage = document.getElementById('page-meal');
+    mealPage.querySelectorAll('.month-panel').forEach(p => p.classList.remove('active'));
+    mealPage.querySelectorAll('.month-tab').forEach(t => {
+      t.classList.remove('active');
+      if (t.getAttribute('onclick').includes(matched.month)) t.classList.add('active');
+    });
+    document.getElementById(matched.month).classList.add('active');
+
+    // 주차 탭 활성화
+    const monthPanel = document.getElementById(matched.month);
+    monthPanel.querySelectorAll('.week-panel').forEach(p => p.classList.remove('active'));
+    monthPanel.querySelectorAll('.week-tab').forEach(t => {
+      t.classList.remove('active');
+      if (t.getAttribute('onclick').includes(matched.week)) t.classList.add('active');
+    });
+    document.getElementById(matched.week).classList.add('active');
+  })();
+</script>
+</body>
+</html>
