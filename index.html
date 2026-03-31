@@ -350,7 +350,29 @@
     const title = el.nextElementSibling.querySelector('.todo-title');
     title.classList.toggle('done');
     el.textContent = el.classList.contains('done') ? '✓' : '';
+    saveTodos();
   }
+
+  function saveTodos() {
+    const checks = document.querySelectorAll('.todo-check');
+    const state = Array.from(checks).map(c => c.classList.contains('done'));
+    localStorage.setItem('todoState', JSON.stringify(state));
+  }
+
+  function loadTodos() {
+    const saved = localStorage.getItem('todoState');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    document.querySelectorAll('.todo-check').forEach((el, i) => {
+      if (state[i]) {
+        el.classList.add('done');
+        el.textContent = '✓';
+        el.nextElementSibling.querySelector('.todo-title').classList.add('done');
+      }
+    });
+  }
+
+  loadTodos();
 
   // 식단 자동 선택: 현재 날짜 기준 월/주차 매칭
   const weekRanges = [
