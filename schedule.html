@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기획팀 프로젝트 일정관리</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, sans-serif; background: #f8fafc; color: #334155; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  input, select, textarea { font-family: inherit; }
+
+  /* Layout */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 260px; background: #f1f5f9; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-header { padding: 20px 16px 12px; border-bottom: 1px solid #e2e8f0; }
+  .sidebar-header h2 { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .btn-add-project { width: 100%; padding: 8px 12px; background: #2563eb; color: white; border-radius: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background 0.2s; }
+  .btn-add-project:hover { background: #1d4ed8; }
+  .project-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .project-item { display: flex; align-items: center; padding: 10px 16px; cursor: pointer; transition: background 0.15s; position: relative; gap: 10px; }
+  .project-item:hover { background: #e2e8f0; }
+  .project-item.active { background: #dbeafe; }
+  .project-item.all-view { border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; padding-bottom: 12px; }
+  .project-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .project-info { flex: 1; min-width: 0; }
+  .project-name { font-size: 14px; font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .project-count { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .project-actions { display: none; gap: 2px; }
+  .project-item:hover .project-actions { display: flex; }
+  .project-actions button { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #64748b; transition: all 0.15s; }
+  .project-actions button:hover { background: #cbd5e1; color: #334155; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Top Header */
+  .top-header { background: white; border-bottom: 1px solid #e2e8f0; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .top-header h1 { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .top-header-right { display: flex; align-items: center; gap: 12px; }
+  .today-badge { font-size: 13px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 6px; }
+
+  /* Toolbar */
+  .toolbar { background: white; border-bottom: 1px solid #e2e8f0; padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .toolbar-left { display: flex; align-items: center; gap: 12px; }
+  .view-toggle { display: flex; background: #f1f5f9; border-radius: 8px; overflow: hidden; }
+  .view-btn { padding: 6px 14px; font-size: 13px; font-weight: 500; color: #64748b; transition: all 0.2s; }
+  .view-btn.active { background: #2563eb; color: white; }
+  .date-nav { display: flex; align-items: center; gap: 8px; }
+  .date-nav button { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #64748b; transition: all 0.15s; }
+  .date-nav button:hover { background: #f1f5f9; color: #334155; }
+  .date-label { font-size: 13px; font-weight: 600; color: #0f172a; min-width: 140px; text-align: center; }
+  .btn-today { padding: 5px 12px; font-size: 12px; font-weight: 600; color: #2563eb; border: 1px solid #2563eb; border-radius: 6px; transition: all 0.15s; }
+  .btn-today:hover { background: #2563eb; color: white; }
+  .toolbar-right { display: flex; align-items: center; gap: 8px; }
+  .btn-add-task { padding: 7px 14px; background: #2563eb; color: white; border-radius: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: background 0.2s; }
+  .btn-add-task:hover { background: #1d4ed8; }
+
+  /* Gantt */
+  .gantt-wrapper { flex: 1; min-height: 0; overflow: auto; background: white; }
+  .gantt { display: inline-flex; flex-direction: column; min-width: 100%; }
+  .gantt-header { display: flex; position: sticky; top: 0; z-index: 10; background: white; border-bottom: 2px solid #e2e8f0; }
+  .gantt-label-col { width: 220px; min-width: 220px; flex-shrink: 0; }
+  .gantt-label-header { height: 56px; display: flex; align-items: flex-end; padding: 0 12px 8px; font-size: 12px; font-weight: 600; color: #64748b; background: #f8fafc; border-right: 1px solid #e2e8f0; border-bottom: 2px solid #e2e8f0; }
+  .gantt-timeline-header { display: flex; flex-direction: column; }
+  .gantt-months-row { display: flex; height: 24px; }
+  .gantt-month-cell { font-size: 12px; font-weight: 700; color: #0f172a; display: flex; align-items: center; padding-left: 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+  .gantt-days-row { display: flex; height: 32px; }
+  .gantt-day-cell { display: flex; align-items: center; justify-content: center; font-size: 11px; color: #64748b; border-right: 1px solid #f1f5f9; position: relative; }
+  .gantt-day-cell.weekend { background: #f8fafc; color: #cbd5e1; }
+  .gantt-day-cell.today { background: #fef2f2; color: #dc2626; font-weight: 700; }
+
+  /* Gantt Body */
+  .gantt-body { position: relative; }
+  .gantt-row { display: flex; border-bottom: 1px solid #f1f5f9; min-height: 44px; }
+  .gantt-row:hover { background: #f8fafc; }
+  .gantt-row-label { width: 220px; min-width: 220px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-right: 1px solid #e2e8f0; cursor: pointer; }
+  .gantt-row-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .gantt-row-info { min-width: 0; }
+  .gantt-row-name { font-size: 13px; font-weight: 500; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gantt-row-assignee { font-size: 11px; color: #94a3b8; }
+  .gantt-row-timeline { flex: 1; position: relative; }
+  .gantt-bar { position: absolute; top: 8px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; padding: 0 8px; transition: opacity 0.15s, box-shadow 0.15s; min-width: 4px; }
+  .gantt-bar:hover { opacity: 0.9; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 5; }
+  .gantt-bar-progress { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; opacity: 0.3; }
+  .gantt-bar-text { position: relative; z-index: 1; font-size: 11px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gantt-today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; z-index: 8; pointer-events: none; }
+  .gantt-today-dot { position: absolute; top: -4px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #dc2626; }
+
+  /* Gantt grid lines */
+  .gantt-grid-col { position: absolute; top: 0; bottom: 0; border-right: 1px solid #f1f5f9; }
+  .gantt-grid-col.weekend { background: rgba(248,250,252,0.5); }
+
+  /* Empty state */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #94a3b8; }
+  .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state-text { font-size: 14px; text-align: center; }
+
+  /* Task Table */
+  .task-table-section { border-bottom: 2px solid #e2e8f0; background: white; max-height: 280px; overflow-y: auto; flex-shrink: 0; }
+  .task-table-header { padding: 12px 24px; font-size: 13px; font-weight: 700; color: #64748b; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+  .task-table { width: 100%; border-collapse: collapse; }
+  .task-table th { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #64748b; text-align: left; background: #f8fafc; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
+  .task-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+  .task-table tr { cursor: pointer; transition: background 0.15s; }
+  .task-table tbody tr:hover { background: #f8fafc; }
+  .progress-bar-mini { width: 80px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+  .progress-bar-mini-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .status-대기 { background: #ede9fe; color: #7c3aed; }
+  .status-진행중 { background: #fef3c7; color: #b45309; }
+  .status-완료 { background: #dcfce7; color: #16a34a; }
+  .status-지연 { background: #fee2e2; color: #dc2626; }
+
+  /* Tooltip */
+  .tooltip { position: absolute; background: #0f172a; color: white; padding: 8px 12px; border-radius: 8px; font-size: 12px; z-index: 100; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .tooltip::after { content: ''; position: absolute; top: 100%; left: 20px; border: 5px solid transparent; border-top-color: #0f172a; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: white; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+  .modal-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h3 { font-size: 17px; font-weight: 700; color: #0f172a; }
+  .modal-close { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #94a3b8; transition: all 0.15s; }
+  .modal-close:hover { background: #f1f5f9; color: #334155; }
+  .modal-body { padding: 20px 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+  .form-group input, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #334155; transition: border-color 0.2s; outline: none; }
+  .form-group input:focus, .form-group select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+  .color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-swatch { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; border: 3px solid transparent; transition: all 0.15s; }
+  .color-swatch.selected { border-color: #0f172a; transform: scale(1.1); }
+  .color-swatch:hover { transform: scale(1.1); }
+  .progress-input { display: flex; align-items: center; gap: 12px; }
+  .progress-input input[type="range"] { flex: 1; accent-color: #2563eb; }
+  .progress-input span { font-size: 14px; font-weight: 600; color: #2563eb; min-width: 36px; }
+  .modal-footer { padding: 0 24px 20px; display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-footer .btn-delete { margin-right: auto; }
+  .btn-primary { padding: 9px 20px; background: #2563eb; color: white; border-radius: 8px; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-secondary { padding: 9px 20px; background: #f1f5f9; color: #64748b; border-radius: 8px; font-size: 14px; font-weight: 600; transition: all 0.15s; }
+  .btn-secondary:hover { background: #e2e8f0; color: #334155; }
+  .btn-danger { padding: 9px 20px; background: #fef2f2; color: #dc2626; border-radius: 8px; font-size: 14px; font-weight: 600; transition: all 0.15s; }
+  .btn-danger:hover { background: #fecaca; }
+
+  /* Mobile */
+  .mobile-project-select { display: none; padding: 10px 16px; background: white; border-bottom: 1px solid #e2e8f0; }
+  .mobile-project-select select { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 600; }
+
+  @media (max-width: 1024px) {
+    .sidebar { display: none; }
+    .mobile-project-select { display: block; }
+  }
+  @media (max-width: 768px) {
+    .toolbar { flex-wrap: wrap; padding: 10px 16px; }
+    .top-header { padding: 12px 16px; }
+    .top-header h1 { font-size: 16px; }
+    .gantt-label-col, .gantt-row-label, .gantt-label-header { width: 160px; min-width: 160px; }
+  }
+
+  /* Scrollbar */
+  .gantt-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+  .gantt-wrapper::-webkit-scrollbar-track { background: #f1f5f9; }
+  .gantt-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  .gantt-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  /* Dashboard (전체보기) */
+  .dashboard { flex: 1; overflow-y: auto; padding: 24px; }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .project-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; transition: box-shadow 0.2s; cursor: pointer; }
+  .project-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .project-card-bar { height: 4px; }
+  .project-card-body { padding: 18px 20px; }
+  .project-card-title { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+  .project-card-progress { margin-bottom: 14px; }
+  .project-card-progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+  .project-card-progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .project-card-progress-text { font-size: 12px; color: #64748b; }
+  .project-card-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .project-card-stat { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+  .project-card-meta { font-size: 12px; color: #94a3b8; display: flex; flex-direction: column; gap: 4px; }
+  .project-card-assignees { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .assignee-chip { font-size: 11px; padding: 2px 8px; background: #f1f5f9; border-radius: 10px; color: #64748b; }
+
+  /* Category filter */
+  .category-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+  .category-chip { padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; color: #64748b; transition: all 0.15s; }
+  .category-chip.active { color: white; border-color: transparent; }
+  .category-chip:hover { opacity: 0.85; }
+  .cat-기획 { background: #dbeafe; color: #1d4ed8; }
+  .cat-개발 { background: #dcfce7; color: #16a34a; }
+  .cat-디자인 { background: #fce7f3; color: #be185d; }
+  .cat-마크업 { background: #fef3c7; color: #b45309; }
+  .category-chip.active.cat-all { background: #334155; border-color: #334155; }
+  .category-chip.active.cat-기획 { background: #2563eb; }
+  .category-chip.active.cat-개발 { background: #16a34a; }
+  .category-chip.active.cat-디자인 { background: #db2777; }
+  .category-chip.active.cat-마크업 { background: #d97706; }
+
+  /* Legend */
+  .gantt-legend { display: flex; gap: 14px; padding: 6px 24px 10px; background: white; border-bottom: 1px solid #e2e8f0; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* Animations */
+  .modal { animation: modalIn 0.2s ease-out; }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>프로젝트</h2>
+      <button class="btn-add-project" onclick="openProjectModal()">+ 새 프로젝트</button>
+    </div>
+    <div class="project-list" id="projectList"></div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="top-header">
+      <h1>프로젝트 일정관리</h1>
+      <div class="top-header-right">
+        <span class="today-badge" id="todayBadge"></span>
+      </div>
+    </div>
+
+    <!-- Mobile project selector -->
+    <div class="mobile-project-select">
+      <select id="mobileProjectSelect" onchange="selectProjectMobile(this.value)"></select>
+    </div>
+
+    <div class="toolbar" id="toolbar">
+      <div class="toolbar-left">
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="month" onclick="setView('month')">월간</button>
+          <button class="view-btn" data-view="week" onclick="setView('week')">주간</button>
+        </div>
+        <div class="date-nav">
+          <button onclick="navigateDate(-1)">◀</button>
+          <span class="date-label" id="dateLabel"></span>
+          <button onclick="navigateDate(1)">▶</button>
+          <button class="btn-today" onclick="goToday()">오늘</button>
+        </div>
+        <div class="category-filter" id="categoryFilter"></div>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-add-task" onclick="openTaskModal()">+ 업무 추가</button>
+      </div>
+    </div>
+
+    <!-- Dashboard (전체보기) -->
+    <div class="dashboard" id="dashboard" style="display:none;">
+      <div class="dashboard-grid" id="dashboardGrid"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="gantt-legend" id="ganttLegend">
+      <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>기획</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#16a34a;"></div>개발</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#db2777;"></div>디자인</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d97706;"></div>마크업</div>
+    </div>
+
+    <!-- Task table -->
+    <div class="task-table-section" id="taskTableSection">
+      <div class="task-table-header">
+        <span>업무 목록</span>
+        <span id="taskCount"></span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>프로젝트</th>
+              <th>업무명</th>
+              <th>카테고리</th>
+              <th>담당자</th>
+              <th>시작일</th>
+              <th>종료일</th>
+              <th>진행률</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="taskTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Gantt chart -->
+    <div class="gantt-wrapper" id="ganttWrapper">
+      <div class="gantt" id="ganttChart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-overlay" id="projectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="projectModalTitle">새 프로젝트</h3>
+      <button class="modal-close" onclick="closeModal('projectModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>프로젝트명</label>
+        <input type="text" id="projectNameInput" placeholder="프로젝트 이름을 입력하세요">
+      </div>
+      <div class="form-group">
+        <label>색상</label>
+        <div class="color-picker" id="colorPicker"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger btn-delete" id="projectDeleteBtn" onclick="deleteProject()" style="display:none;">삭제</button>
+      <button class="btn-secondary" onclick="closeModal('projectModal')">취소</button>
+      <button class="btn-primary" onclick="saveProject()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="taskModalTitle">새 업무</h3>
+      <button class="modal-close" onclick="closeModal('taskModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>프로젝트</label>
+        <select id="taskProjectSelect"></select>
+      </div>
+      <div class="form-group">
+        <label>업무명</label>
+        <input type="text" id="taskNameInput" placeholder="업무 이름을 입력하세요">
+      </div>
+      <div class="form-group">
+        <label>담당자</label>
+        <input type="text" id="taskAssigneeInput" placeholder="담당자 이름">
+      </div>
+      <div class="form-group">
+        <label>카테고리</label>
+        <select id="taskCategorySelect">
+          <option value="기획">기획</option>
+          <option value="개발">개발</option>
+          <option value="디자인">디자인</option>
+          <option value="마크업">마크업</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>시작일</label>
+          <input type="date" id="taskStartInput">
+        </div>
+        <div class="form-group">
+          <label>종료일</label>
+          <input type="date" id="taskEndInput">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>진행률</label>
+        <div class="progress-input">
+          <input type="range" id="taskProgressInput" min="0" max="100" value="0" oninput="document.getElementById('progressValue').textContent=this.value+'%'">
+          <span id="progressValue">0%</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>상태</label>
+        <select id="taskStatusSelect">
+          <option value="대기">대기</option>
+          <option value="진행중">진행중</option>
+          <option value="완료">완료</option>
+          <option value="지연">지연</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger btn-delete" id="taskDeleteBtn" onclick="deleteTask()" style="display:none;">삭제</button>
+      <button class="btn-secondary" onclick="closeModal('taskModal')">취소</button>
+      <button class="btn-primary" onclick="saveTask()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <h3>삭제 확인</h3>
+      <button class="modal-close" onclick="closeModal('confirmModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage" style="font-size:14px;color:#334155;">정말 삭제하시겠습니까?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('confirmModal')">취소</button>
+      <button class="btn-danger" id="confirmDeleteBtn">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip" style="display:none;"></div>
+
+<script>
+// ========== Constants ==========
+const STORAGE_KEY = 'planningScheduleData';
+const PROJECT_COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6366f1'];
+const STATUS_COLORS = { '대기': '#8b5cf6', '진행중': '#f59e0b', '완료': '#16a34a', '지연': '#dc2626' };
+const CATEGORY_COLORS = { '기획': '#2563eb', '개발': '#16a34a', '디자인': '#db2777', '마크업': '#d97706' };
+const CATEGORIES = ['기획','개발','디자인','마크업'];
+const DAY_WIDTH_MONTH = 36;
+const DAY_WIDTH_WEEK = 80;
+
+// ========== State ==========
+let appData = { projects: [], selectedProjectId: null, viewMode: 'month', currentDate: todayStr() };
+let editingProjectId = null;
+let editingTaskId = null;
+let editingTaskProjectId = null;
+let selectedColor = PROJECT_COLORS[0];
+let selectedCategory = null; // null = 전체
+
+// ========== Utilities ==========
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function generateId(prefix) { return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); }
+function parseDate(str) { const [y, m, d] = str.split('-').map(Number); return new Date(y, m - 1, d); }
+function formatDateKR(str) { const d = parseDate(str); return (d.getMonth() + 1) + '/' + d.getDate(); }
+function formatDateFull(str) { const d = parseDate(str); return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0'); }
+function daysBetween(d1, d2) { return Math.round((d2 - d1) / (1000 * 60 * 60 * 24)); }
+function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d; }
+function dateToStr(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function isWeekend(d) { const day = d.getDay(); return day === 0 || day === 6; }
+function getMonday(d) { const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.getFullYear(), d.getMonth(), diff); }
+
+// ========== Data ==========
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { appData = JSON.parse(raw); return true; }
+  } catch (e) { console.error('Load error', e); }
+  return false;
+}
+
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+  catch (e) { console.error('Save error', e); }
+}
+
+function initSampleData() {
+  appData = {
+    selectedProjectId: null,
+    viewMode: 'month',
+    currentDate: todayStr(),
+    projects: [
+      {
+        id: 'p1', name: '2026 상반기 마케팅 캠페인', color: '#3b82f6',
+        tasks: [
+          { id: 't1_1', name: '시장 조사 및 트렌드 분석', assignee: '김민준', startDate: '2026-04-01', endDate: '2026-04-11', progress: 75, status: '진행중', category: '기획' },
+          { id: 't1_2', name: '캠페인 콘셉트 기획', assignee: '이서윤', startDate: '2026-04-07', endDate: '2026-04-18', progress: 30, status: '진행중', category: '기획' },
+          { id: 't1_3', name: '디자인 시안 제작', assignee: '최예린', startDate: '2026-04-14', endDate: '2026-04-25', progress: 0, status: '대기', category: '디자인' },
+          { id: 't1_4', name: '매체 집행 계획 수립', assignee: '정하은', startDate: '2026-04-21', endDate: '2026-05-02', progress: 0, status: '대기', category: '기획' },
+          { id: 't1_5', name: '캠페인 런칭 및 모니터링', assignee: '오승현', startDate: '2026-05-04', endDate: '2026-05-22', progress: 0, status: '대기', category: '마크업' }
+        ]
+      },
+      {
+        id: 'p2', name: '신규 서비스 기획', color: '#8b5cf6',
+        tasks: [
+          { id: 't2_1', name: '사용자 니즈 리서치', assignee: '이서윤', startDate: '2026-04-01', endDate: '2026-04-10', progress: 90, status: '진행중', category: '기획' },
+          { id: 't2_2', name: '경쟁사 벤치마킹', assignee: '박지호', startDate: '2026-04-03', endDate: '2026-04-14', progress: 60, status: '진행중', category: '기획' },
+          { id: 't2_3', name: '서비스 플로우 설계', assignee: '김민준', startDate: '2026-04-14', endDate: '2026-04-24', progress: 10, status: '진행중', category: '개발' },
+          { id: 't2_4', name: '와이어프레임 작성', assignee: '최예린', startDate: '2026-04-21', endDate: '2026-05-01', progress: 0, status: '대기', category: '디자인' },
+          { id: 't2_5', name: '내부 리뷰 및 피드백 반영', assignee: '정하은', startDate: '2026-05-04', endDate: '2026-05-15', progress: 0, status: '대기', category: '기획' }
+        ]
+      },
+      {
+        id: 'p3', name: '2026 하반기 사업계획서', color: '#10b981',
+        tasks: [
+          { id: 't3_1', name: '상반기 실적 데이터 정리', assignee: '오승현', startDate: '2026-04-07', endDate: '2026-04-18', progress: 40, status: '진행중', category: '기획' },
+          { id: 't3_2', name: '부서별 KPI 취합', assignee: '박지호', startDate: '2026-04-14', endDate: '2026-04-25', progress: 0, status: '대기', category: '기획' },
+          { id: 't3_3', name: '사업계획 초안 작성', assignee: '김민준', startDate: '2026-04-28', endDate: '2026-05-15', progress: 0, status: '대기', category: '기획' },
+          { id: 't3_4', name: '경영진 검토 및 수정', assignee: '이서윤', startDate: '2026-05-18', endDate: '2026-05-29', progress: 0, status: '대기', category: '기획' }
+        ]
+      },
+      {
+        id: 'p4', name: '사내 워크숍 준비', color: '#f59e0b',
+        tasks: [
+          { id: 't4_1', name: '워크숍 주제 및 일정 확정', assignee: '정하은', startDate: '2026-03-24', endDate: '2026-03-31', progress: 100, status: '완료', category: '기획' },
+          { id: 't4_2', name: '외부 강사 섭외', assignee: '오승현', startDate: '2026-04-01', endDate: '2026-04-11', progress: 50, status: '진행중', category: '기획' },
+          { id: 't4_3', name: '장소 및 케이터링 예약', assignee: '최예린', startDate: '2026-04-07', endDate: '2026-04-18', progress: 20, status: '진행중', category: '디자인' },
+          { id: 't4_4', name: '참가자 안내 및 자료 준비', assignee: '박지호', startDate: '2026-04-14', endDate: '2026-04-25', progress: 0, status: '대기', category: '마크업' }
+        ]
+      }
+    ]
+  };
+  saveData();
+}
+
+// ========== Rendering ==========
+function render() {
+  const isDashboard = !appData.selectedProjectId;
+  renderSidebar();
+  renderMobileSelect();
+  renderToolbar();
+  document.getElementById('todayBadge').textContent = formatDateFull(todayStr());
+
+  // Toggle dashboard vs gantt+table view
+  document.getElementById('dashboard').style.display = isDashboard ? 'block' : 'none';
+  document.getElementById('taskTableSection').style.display = isDashboard ? 'none' : '';
+  document.getElementById('ganttWrapper').style.display = isDashboard ? 'none' : '';
+  document.getElementById('ganttLegend').style.display = isDashboard ? 'none' : '';
+  document.getElementById('toolbar').style.display = isDashboard ? 'none' : '';
+
+  if (isDashboard) {
+    renderDashboard();
+  } else {
+    renderCategoryFilter();
+    renderGantt();
+    renderTaskTable();
+  }
+}
+
+// ========== Dashboard ==========
+function renderDashboard() {
+  const grid = document.getElementById('dashboardGrid');
+  let html = '';
+  appData.projects.forEach(p => {
+    const total = p.tasks.length;
+    if (total === 0) return;
+    const avgProgress = Math.round(p.tasks.reduce((s, t) => s + t.progress, 0) / total);
+    const counts = { '진행중': 0, '대기': 0, '완료': 0, '지연': 0 };
+    p.tasks.forEach(t => { if (counts[t.status] !== undefined) counts[t.status]++; });
+    const assignees = [...new Set(p.tasks.map(t => t.assignee))];
+    const dates = p.tasks.map(t => t.startDate).sort();
+    const endDates = p.tasks.map(t => t.endDate).sort();
+    const period = formatDateFull(dates[0]) + ' ~ ' + formatDateFull(endDates[endDates.length - 1]);
+
+    html += `<div class="project-card" onclick="selectProject('${p.id}')">
+      <div class="project-card-bar" style="background:${p.color};"></div>
+      <div class="project-card-body">
+        <div class="project-card-title">${esc(p.name)}</div>
+        <div class="project-card-progress">
+          <div class="project-card-progress-bar"><div class="project-card-progress-fill" style="width:${avgProgress}%;background:${p.color};"></div></div>
+          <div class="project-card-progress-text">전체 진행률 ${avgProgress}% · ${total}개 업무</div>
+        </div>
+        <div class="project-card-stats">
+          ${counts['진행중'] ? `<span class="project-card-stat status-진행중">${counts['진행중']} 진행중</span>` : ''}
+          ${counts['대기'] ? `<span class="project-card-stat status-대기">${counts['대기']} 대기</span>` : ''}
+          ${counts['완료'] ? `<span class="project-card-stat status-완료">${counts['완료']} 완료</span>` : ''}
+          ${counts['지연'] ? `<span class="project-card-stat status-지연">${counts['지연']} 지연</span>` : ''}
+        </div>
+        <div class="project-card-meta">
+          <span>${period}</span>
+          <div class="project-card-assignees">${assignees.map(a => `<span class="assignee-chip">${esc(a)}</span>`).join('')}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+  if (!html) html = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">프로젝트를 추가해보세요.</div></div>';
+  grid.innerHTML = html;
+}
+
+// ========== Category Filter ==========
+function renderCategoryFilter() {
+  const filter = document.getElementById('categoryFilter');
+  let html = `<span class="category-chip cat-all ${!selectedCategory ? 'active' : ''}" onclick="filterCategory(null)">전체</span>`;
+  CATEGORIES.forEach(c => {
+    html += `<span class="category-chip cat-${c} ${selectedCategory === c ? 'active' : ''}" onclick="filterCategory('${c}')">${c}</span>`;
+  });
+  filter.innerHTML = html;
+}
+
+function filterCategory(cat) { selectedCategory = cat; render(); }
+
+function renderSidebar() {
+  const list = document.getElementById('projectList');
+  let html = `<div class="project-item all-view ${!appData.selectedProjectId ? 'active' : ''}" onclick="selectProject(null)">
+    <div class="project-dot" style="background:#64748b;"></div>
+    <div class="project-info"><div class="project-name">전체 보기</div>
+    <div class="project-count">${appData.projects.reduce((s, p) => s + p.tasks.length, 0)}개 업무</div></div></div>`;
+  appData.projects.forEach(p => {
+    html += `<div class="project-item ${appData.selectedProjectId === p.id ? 'active' : ''}" onclick="selectProject('${p.id}')">
+      <div class="project-dot" style="background:${p.color};"></div>
+      <div class="project-info"><div class="project-name">${esc(p.name)}</div>
+      <div class="project-count">${p.tasks.length}개 업무</div></div>
+      <div class="project-actions">
+        <button onclick="event.stopPropagation();openProjectModal('${p.id}')" title="수정">✎</button>
+        <button onclick="event.stopPropagation();deleteProject('${p.id}')" title="삭제">🗑</button>
+      </div></div>`;
+  });
+  list.innerHTML = html;
+}
+
+function renderMobileSelect() {
+  const sel = document.getElementById('mobileProjectSelect');
+  let html = '<option value="">전체 보기</option>';
+  appData.projects.forEach(p => {
+    html += `<option value="${p.id}" ${appData.selectedProjectId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`;
+  });
+  sel.innerHTML = html;
+}
+
+function selectProject(id) { appData.selectedProjectId = id; saveData(); render(); }
+function selectProjectMobile(id) { selectProject(id || null); }
+
+function renderToolbar() {
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === appData.viewMode);
+  });
+  const d = parseDate(appData.currentDate);
+  let label;
+  if (appData.viewMode === 'month') {
+    label = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
+  } else {
+    const end = addDays(d, 13);
+    label = (d.getMonth() + 1) + '월 ' + d.getDate() + '일 - ' + (end.getMonth() + 1) + '월 ' + end.getDate() + '일';
+  }
+  document.getElementById('dateLabel').textContent = label;
+}
+
+function setView(mode) { appData.viewMode = mode; saveData(); render(); }
+
+function navigateDate(dir) {
+  const d = parseDate(appData.currentDate);
+  if (appData.viewMode === 'month') {
+    d.setMonth(d.getMonth() + dir);
+    d.setDate(1);
+  } else {
+    d.setDate(d.getDate() + dir * 7);
+  }
+  appData.currentDate = dateToStr(d);
+  saveData();
+  render();
+}
+
+function goToday() {
+  const today = new Date();
+  if (appData.viewMode === 'month') {
+    appData.currentDate = dateToStr(new Date(today.getFullYear(), today.getMonth(), 1));
+  } else {
+    appData.currentDate = dateToStr(getMonday(today));
+  }
+  saveData();
+  render();
+  scrollToToday();
+}
+
+// ========== Gantt Rendering ==========
+function getVisibleDays() {
+  const start = parseDate(appData.currentDate);
+  let days = [];
+  if (appData.viewMode === 'month') {
+    const year = start.getFullYear(), month = start.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
+  } else {
+    const monday = getMonday(start);
+    for (let i = 0; i < 14; i++) days.push(addDays(monday, i));
+  }
+  return days;
+}
+
+function renderGantt() {
+  const days = getVisibleDays();
+  const dayWidth = appData.viewMode === 'month' ? DAY_WIDTH_MONTH : DAY_WIDTH_WEEK;
+  const today = todayStr();
+  const tasks = getVisibleTasks();
+  const totalWidth = days.length * dayWidth;
+
+  // Group days by month
+  const months = [];
+  let curMonth = null;
+  days.forEach((d, i) => {
+    const key = d.getFullYear() + '-' + d.getMonth();
+    if (!curMonth || curMonth.key !== key) {
+      curMonth = { key, label: (d.getMonth() + 1) + '월', count: 0 };
+      months.push(curMonth);
+    }
+    curMonth.count++;
+  });
+
+  let html = '<div class="gantt-header"><div class="gantt-label-col"><div class="gantt-label-header">업무명 / 담당자</div></div><div class="gantt-timeline-header">';
+
+  // Month row
+  html += '<div class="gantt-months-row">';
+  months.forEach(m => {
+    html += `<div class="gantt-month-cell" style="width:${m.count * dayWidth}px;">${m.label}</div>`;
+  });
+  html += '</div>';
+
+  // Days row
+  html += '<div class="gantt-days-row">';
+  days.forEach(d => {
+    const ds = dateToStr(d);
+    const we = isWeekend(d) ? ' weekend' : '';
+    const td = ds === today ? ' today' : '';
+    html += `<div class="gantt-day-cell${we}${td}" style="width:${dayWidth}px;">${d.getDate()}</div>`;
+  });
+  html += '</div></div></div>';
+
+  // Body
+  const rangeStart = days[0];
+  const rangeEnd = addDays(days[days.length - 1], 1);
+
+  html += '<div class="gantt-body" style="position:relative;">';
+
+  // Grid columns
+  days.forEach((d, i) => {
+    const we = isWeekend(d) ? ' weekend' : '';
+    html += `<div class="gantt-grid-col${we}" style="left:${220 + i * dayWidth}px;width:${dayWidth}px;"></div>`;
+  });
+
+  // Today line
+  const todayDate = parseDate(today);
+  if (todayDate >= rangeStart && todayDate < rangeEnd) {
+    const todayPos = 220 + daysBetween(rangeStart, todayDate) * dayWidth + dayWidth / 2;
+    html += `<div class="gantt-today-line" style="left:${todayPos}px;"><div class="gantt-today-dot"></div></div>`;
+  }
+
+  if (tasks.length === 0) {
+    html += `<div class="empty-state" style="min-height:200px;"><div class="empty-state-icon">📋</div><div class="empty-state-text">표시할 업무가 없습니다.<br>업무를 추가해보세요.</div></div>`;
+  }
+
+  tasks.forEach(({ task, project }) => {
+    const tStart = parseDate(task.startDate);
+    const tEnd = parseDate(task.endDate);
+    const barStart = Math.max(0, daysBetween(rangeStart, tStart));
+    const barEnd = Math.min(days.length, daysBetween(rangeStart, tEnd) + 1);
+    const barLeft = 220 + barStart * dayWidth;
+    const barWidth = Math.max(dayWidth * 0.5, (barEnd - barStart) * dayWidth - 2);
+    const visible = barEnd > 0 && barStart < days.length;
+
+    html += `<div class="gantt-row">`;
+    html += `<div class="gantt-row-label" onclick="openTaskModal('${project.id}','${task.id}')">
+      <div class="gantt-row-dot" style="background:${project.color};"></div>
+      <div class="gantt-row-info"><div class="gantt-row-name">${esc(task.name)}</div>
+      <div class="gantt-row-assignee">${esc(task.assignee)}</div></div></div>`;
+    html += '<div class="gantt-row-timeline">';
+    if (visible) {
+      const catColor = CATEGORY_COLORS[task.category] || project.color;
+      html += `<div class="gantt-bar" style="left:${barStart * dayWidth}px;width:${barWidth}px;background:${catColor};"
+        onclick="openTaskModal('${project.id}','${task.id}')"
+        onmouseenter="showTooltip(event,'${esc(task.name)}','${esc(task.assignee)}','${formatDateFull(task.startDate)}','${formatDateFull(task.endDate)}',${task.progress},'${task.status}','${task.category||''}')"
+        onmouseleave="hideTooltip()">
+        <div class="gantt-bar-progress" style="width:${task.progress}%;background:${catColor};opacity:0.5;"></div>
+        <span class="gantt-bar-text">${esc(task.name)}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  document.getElementById('ganttChart').innerHTML = html;
+  document.getElementById('ganttChart').style.width = (220 + totalWidth) + 'px';
+}
+
+function getVisibleTasks() {
+  const result = [];
+  const projects = appData.selectedProjectId
+    ? appData.projects.filter(p => p.id === appData.selectedProjectId)
+    : appData.projects;
+  projects.forEach(p => {
+    p.tasks.forEach(t => {
+      if (!selectedCategory || t.category === selectedCategory) {
+        result.push({ task: t, project: p });
+      }
+    });
+  });
+  result.sort((a, b) => a.task.startDate.localeCompare(b.task.startDate));
+  return result;
+}
+
+function scrollToToday() {
+  const wrapper = document.getElementById('ganttWrapper');
+  const days = getVisibleDays();
+  const dayWidth = appData.viewMode === 'month' ? DAY_WIDTH_MONTH : DAY_WIDTH_WEEK;
+  const today = parseDate(todayStr());
+  const rangeStart = days[0];
+  const offset = daysBetween(rangeStart, today) * dayWidth;
+  if (offset > 0) wrapper.scrollLeft = Math.max(0, offset - wrapper.clientWidth / 3);
+}
+
+// ========== Tooltip ==========
+function showTooltip(e, name, assignee, start, end, progress, status, category) {
+  const tip = document.getElementById('tooltip');
+  tip.innerHTML = `<strong>${name}</strong>${category ? ' ['+category+']' : ''}<br>담당: ${assignee}<br>기간: ${start} ~ ${end}<br>진행률: ${progress}% | 상태: ${status}`;
+  tip.style.display = 'block';
+  const rect = e.target.getBoundingClientRect();
+  tip.style.left = rect.left + 'px';
+  tip.style.top = (rect.top - tip.offsetHeight - 10) + 'px';
+}
+function hideTooltip() { document.getElementById('tooltip').style.display = 'none'; }
+
+// ========== Task Table ==========
+function renderTaskTable() {
+  const tasks = getVisibleTasks();
+  document.getElementById('taskCount').textContent = tasks.length + '개';
+  let html = '';
+  tasks.forEach(({ task, project }) => {
+    html += `<tr onclick="openTaskModal('${project.id}','${task.id}')">
+      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${project.color};margin-right:6px;vertical-align:middle;"></span>${esc(project.name)}</td>
+      <td><strong>${esc(task.name)}</strong></td>
+      <td><span class="status-badge cat-${task.category||'기획'}">${esc(task.category||'기획')}</span></td>
+      <td>${esc(task.assignee)}</td>
+      <td>${formatDateFull(task.startDate)}</td>
+      <td>${formatDateFull(task.endDate)}</td>
+      <td><div class="progress-bar-mini"><div class="progress-bar-mini-fill" style="width:${task.progress}%;background:${project.color};"></div></div> ${task.progress}%</td>
+      <td><span class="status-badge status-${task.status}">${task.status}</span></td>
+    </tr>`;
+  });
+  document.getElementById('taskTableBody').innerHTML = html || '<tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8;">업무가 없습니다.</td></tr>';
+}
+
+// ========== Project CRUD ==========
+function openProjectModal(id) {
+  editingProjectId = id || null;
+  const modal = document.getElementById('projectModal');
+  const titleEl = document.getElementById('projectModalTitle');
+  const nameInput = document.getElementById('projectNameInput');
+  const deleteBtn = document.getElementById('projectDeleteBtn');
+
+  if (id) {
+    const p = appData.projects.find(x => x.id === id);
+    titleEl.textContent = '프로젝트 수정';
+    nameInput.value = p.name;
+    selectedColor = p.color;
+    deleteBtn.style.display = 'block';
+  } else {
+    titleEl.textContent = '새 프로젝트';
+    nameInput.value = '';
+    selectedColor = PROJECT_COLORS[0];
+    deleteBtn.style.display = 'none';
+  }
+  renderColorPicker();
+  modal.classList.add('active');
+  nameInput.focus();
+}
+
+function renderColorPicker() {
+  const picker = document.getElementById('colorPicker');
+  picker.innerHTML = PROJECT_COLORS.map(c =>
+    `<div class="color-swatch ${c === selectedColor ? 'selected' : ''}" style="background:${c};" onclick="selectColor('${c}')"></div>`
+  ).join('');
+}
+
+function selectColor(c) { selectedColor = c; renderColorPicker(); }
+
+function saveProject() {
+  const name = document.getElementById('projectNameInput').value.trim();
+  if (!name) { document.getElementById('projectNameInput').focus(); return; }
+
+  if (editingProjectId) {
+    const p = appData.projects.find(x => x.id === editingProjectId);
+    p.name = name;
+    p.color = selectedColor;
+  } else {
+    appData.projects.push({ id: generateId('p'), name, color: selectedColor, tasks: [] });
+  }
+  saveData();
+  closeModal('projectModal');
+  render();
+}
+
+function deleteProject(id) {
+  const pid = id || editingProjectId;
+  if (!pid) return;
+  const p = appData.projects.find(x => x.id === pid);
+  document.getElementById('confirmMessage').textContent = `"${p.name}" 프로젝트를 삭제하시겠습니까? 포함된 모든 업무도 삭제됩니다.`;
+  document.getElementById('confirmDeleteBtn').onclick = () => {
+    appData.projects = appData.projects.filter(x => x.id !== pid);
+    if (appData.selectedProjectId === pid) appData.selectedProjectId = null;
+    saveData();
+    closeModal('confirmModal');
+    closeModal('projectModal');
+    render();
+  };
+  document.getElementById('confirmModal').classList.add('active');
+}
+
+// ========== Task CRUD ==========
+function openTaskModal(projectId, taskId) {
+  editingTaskId = taskId || null;
+  editingTaskProjectId = projectId || null;
+  const modal = document.getElementById('taskModal');
+  const titleEl = document.getElementById('taskModalTitle');
+  const deleteBtn = document.getElementById('taskDeleteBtn');
+
+  // Project select
+  const projSel = document.getElementById('taskProjectSelect');
+  projSel.innerHTML = appData.projects.map(p =>
+    `<option value="${p.id}" ${p.id === (projectId || appData.selectedProjectId) ? 'selected' : ''}>${esc(p.name)}</option>`
+  ).join('');
+
+  if (taskId && projectId) {
+    const p = appData.projects.find(x => x.id === projectId);
+    const t = p.tasks.find(x => x.id === taskId);
+    titleEl.textContent = '업무 수정';
+    document.getElementById('taskNameInput').value = t.name;
+    document.getElementById('taskAssigneeInput').value = t.assignee;
+    document.getElementById('taskCategorySelect').value = t.category || '기획';
+    document.getElementById('taskStartInput').value = t.startDate;
+    document.getElementById('taskEndInput').value = t.endDate;
+    document.getElementById('taskProgressInput').value = t.progress;
+    document.getElementById('progressValue').textContent = t.progress + '%';
+    document.getElementById('taskStatusSelect').value = t.status;
+    deleteBtn.style.display = 'block';
+  } else {
+    titleEl.textContent = '새 업무';
+    document.getElementById('taskNameInput').value = '';
+    document.getElementById('taskAssigneeInput').value = '';
+    document.getElementById('taskCategorySelect').value = '기획';
+    document.getElementById('taskStartInput').value = todayStr();
+    document.getElementById('taskEndInput').value = dateToStr(addDays(new Date(), 7));
+    document.getElementById('taskProgressInput').value = 0;
+    document.getElementById('progressValue').textContent = '0%';
+    document.getElementById('taskStatusSelect').value = '대기';
+    deleteBtn.style.display = 'none';
+  }
+
+  if (appData.projects.length === 0) {
+    alert('먼저 프로젝트를 추가해주세요.');
+    return;
+  }
+
+  modal.classList.add('active');
+  document.getElementById('taskNameInput').focus();
+}
+
+function saveTask() {
+  const projId = document.getElementById('taskProjectSelect').value;
+  const name = document.getElementById('taskNameInput').value.trim();
+  const assignee = document.getElementById('taskAssigneeInput').value.trim();
+  const category = document.getElementById('taskCategorySelect').value;
+  const startDate = document.getElementById('taskStartInput').value;
+  const endDate = document.getElementById('taskEndInput').value;
+  const progress = parseInt(document.getElementById('taskProgressInput').value);
+  const status = document.getElementById('taskStatusSelect').value;
+
+  if (!name) { document.getElementById('taskNameInput').focus(); return; }
+  if (!startDate || !endDate) { alert('날짜를 입력해주세요.'); return; }
+  if (endDate < startDate) { alert('종료일은 시작일 이후여야 합니다.'); return; }
+
+  const taskData = { name, assignee, category, startDate, endDate, progress, status };
+
+  if (editingTaskId && editingTaskProjectId) {
+    // If project changed, move task
+    if (editingTaskProjectId !== projId) {
+      const oldProj = appData.projects.find(x => x.id === editingTaskProjectId);
+      oldProj.tasks = oldProj.tasks.filter(x => x.id !== editingTaskId);
+      const newProj = appData.projects.find(x => x.id === projId);
+      newProj.tasks.push({ id: editingTaskId, ...taskData });
+    } else {
+      const p = appData.projects.find(x => x.id === projId);
+      const t = p.tasks.find(x => x.id === editingTaskId);
+      Object.assign(t, taskData);
+    }
+  } else {
+    const p = appData.projects.find(x => x.id === projId);
+    p.tasks.push({ id: generateId('t'), ...taskData });
+  }
+  saveData();
+  closeModal('taskModal');
+  render();
+}
+
+function deleteTask() {
+  if (!editingTaskId || !editingTaskProjectId) return;
+  const p = appData.projects.find(x => x.id === editingTaskProjectId);
+  const t = p.tasks.find(x => x.id === editingTaskId);
+  document.getElementById('confirmMessage').textContent = `"${t.name}" 업무를 삭제하시겠습니까?`;
+  document.getElementById('confirmDeleteBtn').onclick = () => {
+    p.tasks = p.tasks.filter(x => x.id !== editingTaskId);
+    saveData();
+    closeModal('confirmModal');
+    closeModal('taskModal');
+    render();
+  };
+  document.getElementById('confirmModal').classList.add('active');
+}
+
+// ========== Modal Helpers ==========
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+// ========== Event Listeners ==========
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+});
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+
+// ========== Init ==========
+function init() {
+  if (!loadData()) initSampleData();
+  // Migrate old data: add category if missing
+  appData.projects.forEach(p => {
+    p.tasks.forEach(t => { if (!t.category) t.category = '기획'; });
+  });
+  // Ensure currentDate is set
+  if (!appData.currentDate) appData.currentDate = todayStr();
+  if (!appData.viewMode) appData.viewMode = 'month';
+  // Set currentDate to current month start for month view
+  if (appData.viewMode === 'month') {
+    const today = new Date();
+    appData.currentDate = dateToStr(new Date(today.getFullYear(), today.getMonth(), 1));
+  }
+  saveData();
+  render();
+  setTimeout(scrollToToday, 100);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
