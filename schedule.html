@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>기획팀 프로젝트 일정관리</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, sans-serif; background: #f8fafc; color: #334155; }
+  body { font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, sans-serif; background: #f8fafc; color: #334155; }
   button { font-family: inherit; cursor: pointer; border: none; background: none; }
   input, select, textarea { font-family: inherit; }
 
@@ -28,6 +29,7 @@
   .project-info { flex: 1; min-width: 0; }
   .project-name { font-size: 14px; font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .project-count { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .project-meta-line { font-size: 11px; color: #94a3b8; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .project-actions { display: none; gap: 2px; }
   .project-item:hover .project-actions { display: flex; }
   .project-actions button { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #64748b; transition: all 0.15s; }
@@ -52,11 +54,15 @@
   .date-nav button { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #64748b; transition: all 0.15s; }
   .date-nav button:hover { background: #f1f5f9; color: #334155; }
   .date-label { font-size: 13px; font-weight: 600; color: #0f172a; min-width: 140px; text-align: center; }
-  .btn-today { padding: 5px 12px; font-size: 12px; font-weight: 600; color: #2563eb; border: 1px solid #2563eb; border-radius: 6px; transition: all 0.15s; }
+  .btn-today { padding: 5px 20px; font-size: 13px !important; font-weight: 600; color: #2563eb; border: 1px solid #2563eb; border-radius: 6px; transition: all 0.15s; white-space: nowrap; }
   .btn-today:hover { background: #2563eb; color: white; }
+  .date-nav-hidden { display: none !important; }
   .toolbar-right { display: flex; align-items: center; gap: 8px; }
   .btn-add-task { padding: 7px 14px; background: #2563eb; color: white; border-radius: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: background 0.2s; }
   .btn-add-task:hover { background: #1d4ed8; }
+  .btn-add-schedule { padding: 7px 14px; background: white; color: #2563eb; border: 1.5px solid #2563eb; border-radius: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
+  .btn-add-schedule:hover { background: #eff6ff; }
+  .toolbar-right { display: flex; align-items: center; gap: 8px; }
 
   /* Gantt */
   .gantt-wrapper { flex: 1; min-height: 0; overflow: auto; background: white; }
@@ -100,10 +106,10 @@
 
   /* Task Table */
   .task-table-section { border-bottom: 2px solid #e2e8f0; background: white; max-height: 280px; overflow-y: auto; flex-shrink: 0; }
-  .task-table-header { padding: 12px 24px; font-size: 13px; font-weight: 700; color: #64748b; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
-  .task-table { width: 100%; border-collapse: collapse; }
-  .task-table th { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #64748b; text-align: left; background: #f8fafc; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
-  .task-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+  .task-table-header { padding: 10px 16px; font-size: 13px; font-weight: 700; color: #64748b; display: flex; align-items: center; gap: 6px; position: sticky; top: 0; z-index: 3; background: white; border-bottom: 1px solid #e2e8f0; }
+  .task-table { width: auto; min-width: 1250px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+  .task-table th { padding: 6px 12px; font-size: 12px; font-weight: 600; color: #64748b; text-align: left; background: #f8fafc; border-bottom: 1px solid #e2e8f0; position: sticky; top: 36px; z-index: 2; }
+  .task-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .task-table tr { cursor: pointer; transition: background 0.15s; }
   .task-table tbody tr:hover { background: #f8fafc; }
   .progress-bar-mini { width: 80px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
@@ -208,6 +214,42 @@
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; }
   .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
+  /* Project Info Bar */
+  .project-info-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: none; align-items: center; gap: 24px; flex-wrap: wrap; flex-shrink: 0; }
+  .project-info-item { display: flex; align-items: center; gap: 6px; }
+  .project-info-label { font-size: 12px; font-weight: 600; color: #94a3b8; white-space: nowrap; }
+  .project-info-value { font-size: 13px; color: #334155; }
+  .project-info-desc { font-size: 13px; color: #64748b; }
+  .task-template-divider { border: none; border-top: 1px dashed #e2e8f0; margin: 4px 0 16px; }
+  .field-error { font-size: 12px; color: #dc2626; margin-top: 5px; display: none; }
+  .field-error.show { display: block; }
+  .input-error { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220,38,38,0.1) !important; }
+  .task-order-btn { width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; color: #94a3b8; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.15s; background: white; }
+  .task-order-btn:hover { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+  .task-order-btn:disabled { opacity: 0.3; cursor: default; }
+  .btn-schedule { padding: 3px 10px; font-size: 11px; font-weight: 600; border-radius: 5px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .btn-schedule-new { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+  .btn-schedule-new:hover { background: #dbeafe; }
+  .btn-schedule-edit { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+  .btn-schedule-edit:hover { background: #e2e8f0; color: #334155; }
+  .btn-task-delete { width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; color: #f87171; border: 1px solid #fee2e2; cursor: pointer; transition: all 0.15s; background: white; }
+  .btn-task-delete:hover { background: #fef2f2; color: #dc2626; }
+  .btn-icon-sm { width: 26px; height: 26px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; border: 1px solid #e2e8f0; cursor: pointer; background: white; transition: all 0.15s; flex-shrink: 0; }
+  .btn-icon-sm:hover { background: #f1f5f9; }
+  .modal-task-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; cursor: default; transition: background 0.1s; }
+  .modal-task-item:last-child { border-bottom: none; }
+  .modal-task-item.editing { background: #eff6ff; }
+  .modal-task-item.drag-over { border-top: 2px solid #2563eb; background: #eff6ff; }
+  .modal-task-item.dragging { opacity: 0.4; }
+  .drag-handle { cursor: grab; color: #cbd5e1; font-size: 15px; flex-shrink: 0; user-select: none; padding: 0 2px; }
+  .drag-handle:hover { color: #94a3b8; }
+  .drag-handle:active { cursor: grabbing; }
+  .task-table th.sortable { cursor: pointer; user-select: none; }
+  .task-table th.sortable:hover { color: #334155; }
+  .sort-icon { margin-left: 4px; font-size: 10px; }
+  .form-group textarea { width: 100%; padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #334155; transition: border-color 0.2s; outline: none; resize: vertical; min-height: 72px; }
+  .form-group textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
   /* Animations */
   .modal { animation: modalIn 0.2s ease-out; }
   @keyframes modalIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -244,8 +286,9 @@
         <div class="view-toggle">
           <button class="view-btn active" data-view="month" onclick="setView('month')">월간</button>
           <button class="view-btn" data-view="week" onclick="setView('week')">주간</button>
+          <button class="view-btn" data-view="all" onclick="setView('all')">전체</button>
         </div>
-        <div class="date-nav">
+        <div class="date-nav" id="dateNav">
           <button onclick="navigateDate(-1)">◀</button>
           <span class="date-label" id="dateLabel"></span>
           <button onclick="navigateDate(1)">▶</button>
@@ -255,6 +298,7 @@
       </div>
       <div class="toolbar-right">
         <button class="btn-add-task" onclick="openTaskModal()">+ 업무 추가</button>
+        <button class="btn-add-schedule" id="btnAddSchedule" onclick="openScheduleModal()" style="display:none;">+ 일정 등록</button>
       </div>
     </div>
 
@@ -262,6 +306,9 @@
     <div class="dashboard" id="dashboard" style="display:none;">
       <div class="dashboard-grid" id="dashboardGrid"></div>
     </div>
+
+    <!-- Project Info Bar -->
+    <div class="project-info-bar" id="projectInfoBar"></div>
 
     <!-- Legend -->
     <div class="gantt-legend" id="ganttLegend">
@@ -271,34 +318,38 @@
       <div class="legend-item"><div class="legend-dot" style="background:#d97706;"></div>마크업</div>
     </div>
 
+    <!-- Gantt chart -->
+    <div class="gantt-wrapper" id="ganttWrapper">
+      <div class="gantt" id="ganttChart"></div>
+    </div>
+
     <!-- Task table -->
     <div class="task-table-section" id="taskTableSection">
       <div class="task-table-header">
         <span>업무 목록</span>
-        <span id="taskCount"></span>
+        <span id="taskCount" style="font-weight:400;color:#94a3b8;font-size:12px;"></span>
       </div>
-      <div style="overflow-x:auto;">
-        <table class="task-table">
-          <thead>
-            <tr>
-              <th>프로젝트</th>
-              <th>업무명</th>
-              <th>카테고리</th>
-              <th>담당자</th>
-              <th>시작일</th>
-              <th>종료일</th>
-              <th>진행률</th>
-              <th>상태</th>
-            </tr>
-          </thead>
-          <tbody id="taskTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Gantt chart -->
-    <div class="gantt-wrapper" id="ganttWrapper">
-      <div class="gantt" id="ganttChart"></div>
+      <table class="task-table">
+        <colgroup>
+          <col style="width:400px;">
+          <col style="width:130px;">
+          <col style="width:110px;">
+          <col style="width:280px;">
+          <col style="width:230px;">
+          <col style="width:100px;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>업무명</th>
+            <th>담당자 부서</th>
+            <th>담당자</th>
+            <th>기간</th>
+            <th>진행률</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="taskTableBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -316,6 +367,14 @@
         <input type="text" id="projectNameInput" placeholder="프로젝트 이름을 입력하세요">
       </div>
       <div class="form-group">
+        <label>기획담당자</label>
+        <input type="text" id="projectManagerInput" placeholder="담당자 이름">
+      </div>
+      <div class="form-group">
+        <label>설명</label>
+        <textarea id="projectDescInput" placeholder="프로젝트 설명을 입력하세요"></textarea>
+      </div>
+      <div class="form-group">
         <label>색상</label>
         <div class="color-picker" id="colorPicker"></div>
       </div>
@@ -330,53 +389,77 @@
 
 <!-- Task Modal -->
 <div class="modal-overlay" id="taskModal">
-  <div class="modal">
+  <div class="modal" style="max-width:520px;width:95%;">
     <div class="modal-header">
-      <h3 id="taskModalTitle">새 업무</h3>
+      <h3 id="taskModalTitle">업무 관리</h3>
       <button class="modal-close" onclick="closeModal('taskModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="form-group">
+    <div class="modal-body" style="padding-bottom:8px;">
+      <div class="form-group" id="taskProjectGroup" style="margin-bottom:16px;">
         <label>프로젝트</label>
-        <select id="taskProjectSelect"></select>
+        <select id="taskProjectSelect" onchange="onModalProjectChange()"></select>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
         <label>업무명</label>
-        <input type="text" id="taskNameInput" placeholder="업무 이름을 입력하세요">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;min-width:0;">
+            <input type="text" id="taskNameInput" placeholder="업무명을 입력하세요" oninput="clearTaskNameError()" onkeydown="if(event.key==='Enter')saveTask()">
+            <span class="field-error" id="taskNameError"></span>
+          </div>
+          <button class="btn-primary" onclick="saveTask()" style="flex-shrink:0;white-space:nowrap;">+ 추가</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;">등록된 업무</div>
+        <div id="modalTaskList" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;min-height:48px;max-height:260px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('taskModal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Modal (일정 등록/수정) -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="scheduleModalTitle">일정 등록</h3>
+      <button class="modal-close" onclick="closeModal('scheduleModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" id="scheduleTaskSelectorGroup" style="display:none;">
+        <label>업무 선택</label>
+        <select id="scheduleTaskSelect" onchange="onScheduleTaskChange()"></select>
+      </div>
+      <div class="form-group" id="scheduleTaskNameGroup">
+        <label>업무명</label>
+        <div id="scheduleTaskName" style="font-size:14px;font-weight:600;color:#0f172a;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;"></div>
       </div>
       <div class="form-group">
         <label>담당자</label>
-        <input type="text" id="taskAssigneeInput" placeholder="담당자 이름">
-      </div>
-      <div class="form-group">
-        <label>카테고리</label>
-        <select id="taskCategorySelect">
-          <option value="기획">기획</option>
-          <option value="개발">개발</option>
-          <option value="디자인">디자인</option>
-          <option value="마크업">마크업</option>
-        </select>
+        <input type="text" id="scheduleAssigneeInput" placeholder="담당자 이름">
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>시작일</label>
-          <input type="date" id="taskStartInput">
+          <input type="date" id="scheduleStartInput">
         </div>
         <div class="form-group">
           <label>종료일</label>
-          <input type="date" id="taskEndInput">
+          <input type="date" id="scheduleEndInput">
         </div>
       </div>
       <div class="form-group">
         <label>진행률</label>
         <div class="progress-input">
-          <input type="range" id="taskProgressInput" min="0" max="100" value="0" oninput="document.getElementById('progressValue').textContent=this.value+'%'">
-          <span id="progressValue">0%</span>
+          <input type="range" id="scheduleProgressInput" min="0" max="100" value="0" oninput="document.getElementById('scheduleProgressValue').textContent=this.value+'%'">
+          <span id="scheduleProgressValue">0%</span>
         </div>
       </div>
       <div class="form-group">
         <label>상태</label>
-        <select id="taskStatusSelect">
+        <select id="scheduleStatusSelect">
           <option value="대기">대기</option>
           <option value="진행중">진행중</option>
           <option value="완료">완료</option>
@@ -385,9 +468,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-danger btn-delete" id="taskDeleteBtn" onclick="deleteTask()" style="display:none;">삭제</button>
-      <button class="btn-secondary" onclick="closeModal('taskModal')">취소</button>
-      <button class="btn-primary" onclick="saveTask()">저장</button>
+      <button class="btn-secondary" onclick="closeModal('scheduleModal')">취소</button>
+      <button class="btn-primary" onclick="saveSchedule()">저장</button>
     </div>
   </div>
 </div>
@@ -423,7 +505,7 @@ const DAY_WIDTH_MONTH = 36;
 const DAY_WIDTH_WEEK = 80;
 
 // ========== State ==========
-let appData = { projects: [], selectedProjectId: null, viewMode: 'month', currentDate: todayStr() };
+let appData = { projects: [], selectedProjectId: null, viewMode: 'month', currentDate: todayStr(), taskSortMode: 'manual' };
 let editingProjectId = null;
 let editingTaskId = null;
 let editingTaskProjectId = null;
@@ -463,7 +545,7 @@ function initSampleData() {
     currentDate: todayStr(),
     projects: [
       {
-        id: 'p1', name: '2026 상반기 마케팅 캠페인', color: '#3b82f6',
+        id: 'p1', name: '2026 상반기 마케팅 캠페인', color: '#3b82f6', manager: '김민준', description: '상반기 브랜드 인지도 향상을 위한 멀티채널 캠페인 기획 및 실행',
         tasks: [
           { id: 't1_1', name: '시장 조사 및 트렌드 분석', assignee: '김민준', startDate: '2026-04-01', endDate: '2026-04-11', progress: 75, status: '진행중', category: '기획' },
           { id: 't1_2', name: '캠페인 콘셉트 기획', assignee: '이서윤', startDate: '2026-04-07', endDate: '2026-04-18', progress: 30, status: '진행중', category: '기획' },
@@ -473,7 +555,7 @@ function initSampleData() {
         ]
       },
       {
-        id: 'p2', name: '신규 서비스 기획', color: '#8b5cf6',
+        id: 'p2', name: '신규 서비스 기획', color: '#8b5cf6', manager: '이서윤', description: '사용자 중심 신규 서비스 기획 및 IA 설계',
         tasks: [
           { id: 't2_1', name: '사용자 니즈 리서치', assignee: '이서윤', startDate: '2026-04-01', endDate: '2026-04-10', progress: 90, status: '진행중', category: '기획' },
           { id: 't2_2', name: '경쟁사 벤치마킹', assignee: '박지호', startDate: '2026-04-03', endDate: '2026-04-14', progress: 60, status: '진행중', category: '기획' },
@@ -483,7 +565,7 @@ function initSampleData() {
         ]
       },
       {
-        id: 'p3', name: '2026 하반기 사업계획서', color: '#10b981',
+        id: 'p3', name: '2026 하반기 사업계획서', color: '#10b981', manager: '박지호', description: '부서별 KPI 취합 및 경영진 보고용 하반기 사업계획서 작성',
         tasks: [
           { id: 't3_1', name: '상반기 실적 데이터 정리', assignee: '오승현', startDate: '2026-04-07', endDate: '2026-04-18', progress: 40, status: '진행중', category: '기획' },
           { id: 't3_2', name: '부서별 KPI 취합', assignee: '박지호', startDate: '2026-04-14', endDate: '2026-04-25', progress: 0, status: '대기', category: '기획' },
@@ -492,7 +574,7 @@ function initSampleData() {
         ]
       },
       {
-        id: 'p4', name: '사내 워크숍 준비', color: '#f59e0b',
+        id: 'p4', name: '사내 워크숍 준비', color: '#f59e0b', manager: '정하은', description: '전사 역량 강화를 위한 사내 워크숍 기획 및 운영',
         tasks: [
           { id: 't4_1', name: '워크숍 주제 및 일정 확정', assignee: '정하은', startDate: '2026-03-24', endDate: '2026-03-31', progress: 100, status: '완료', category: '기획' },
           { id: 't4_2', name: '외부 강사 섭외', assignee: '오승현', startDate: '2026-04-01', endDate: '2026-04-11', progress: 50, status: '진행중', category: '기획' },
@@ -508,10 +590,16 @@ function initSampleData() {
 // ========== Rendering ==========
 function render() {
   const isDashboard = !appData.selectedProjectId;
+  const project = isDashboard ? null : appData.projects.find(p => p.id === appData.selectedProjectId);
   renderSidebar();
   renderMobileSelect();
   renderToolbar();
   document.getElementById('todayBadge').textContent = formatDateFull(todayStr());
+
+  // Update header title
+  document.querySelector('.top-header h1').textContent = project
+    ? project.name + ' 일정관리'
+    : '프로젝트 일정관리';
 
   // Toggle dashboard vs gantt+table view
   document.getElementById('dashboard').style.display = isDashboard ? 'block' : 'none';
@@ -519,6 +607,25 @@ function render() {
   document.getElementById('ganttWrapper').style.display = isDashboard ? 'none' : '';
   document.getElementById('ganttLegend').style.display = isDashboard ? 'none' : '';
   document.getElementById('toolbar').style.display = isDashboard ? 'none' : '';
+  document.getElementById('btnAddSchedule').style.display = isDashboard ? 'none' : 'flex';
+
+  // Project info bar
+  const infoBar = document.getElementById('projectInfoBar');
+  if (project) {
+    const tasks = project.tasks;
+    const startDates = tasks.map(t => t.startDate).sort();
+    const endDates = tasks.map(t => t.endDate).sort();
+    const period = tasks.length
+      ? formatDateFull(startDates[0]) + ' ~ ' + formatDateFull(endDates[endDates.length - 1])
+      : '업무 없음';
+    infoBar.innerHTML =
+      `<div class="project-info-item"><span class="project-info-label">담당자</span><span class="project-info-value">${esc(project.manager || '-')}</span></div>` +
+      `<div class="project-info-item"><span class="project-info-label">기간</span><span class="project-info-value">${period}</span></div>` +
+      (project.description ? `<div class="project-info-item"><span class="project-info-label">설명</span><span class="project-info-desc">${esc(project.description)}</span></div>` : '');
+    infoBar.style.display = 'flex';
+  } else {
+    infoBar.style.display = 'none';
+  }
 
   if (isDashboard) {
     renderDashboard();
@@ -539,7 +646,7 @@ function renderDashboard() {
     const avgProgress = Math.round(p.tasks.reduce((s, t) => s + t.progress, 0) / total);
     const counts = { '진행중': 0, '대기': 0, '완료': 0, '지연': 0 };
     p.tasks.forEach(t => { if (counts[t.status] !== undefined) counts[t.status]++; });
-    const assignees = [...new Set(p.tasks.map(t => t.assignee))];
+    const assignees = [...new Set(p.tasks.map(t => t.assignee).filter(Boolean))];
     const dates = p.tasks.map(t => t.startDate).sort();
     const endDates = p.tasks.map(t => t.endDate).sort();
     const period = formatDateFull(dates[0]) + ' ~ ' + formatDateFull(endDates[endDates.length - 1]);
@@ -588,10 +695,17 @@ function renderSidebar() {
     <div class="project-info"><div class="project-name">전체 보기</div>
     <div class="project-count">${appData.projects.reduce((s, p) => s + p.tasks.length, 0)}개 업무</div></div></div>`;
   appData.projects.forEach(p => {
+    const startDates = p.tasks.map(t => t.startDate).sort();
+    const endDates = p.tasks.map(t => t.endDate).sort();
+    const period = p.tasks.length
+      ? (startDates[0].slice(5).replace('-', '/') + ' ~ ' + endDates[endDates.length - 1].slice(5).replace('-', '/'))
+      : '';
+    const managerLine = [p.manager ? p.manager : '', period].filter(Boolean).join(' · ');
     html += `<div class="project-item ${appData.selectedProjectId === p.id ? 'active' : ''}" onclick="selectProject('${p.id}')">
       <div class="project-dot" style="background:${p.color};"></div>
       <div class="project-info"><div class="project-name">${esc(p.name)}</div>
-      <div class="project-count">${p.tasks.length}개 업무</div></div>
+      <div class="project-count">${p.tasks.length}개 업무</div>
+      ${managerLine ? `<div class="project-meta-line">${esc(managerLine)}</div>` : ''}</div>
       <div class="project-actions">
         <button onclick="event.stopPropagation();openProjectModal('${p.id}')" title="수정">✎</button>
         <button onclick="event.stopPropagation();deleteProject('${p.id}')" title="삭제">🗑</button>
@@ -616,13 +730,17 @@ function renderToolbar() {
   document.querySelectorAll('.view-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === appData.viewMode);
   });
+  const isAll = appData.viewMode === 'all';
+  document.getElementById('dateNav').style.display = isAll ? 'none' : '';
   const d = parseDate(appData.currentDate);
   let label;
   if (appData.viewMode === 'month') {
     label = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월';
-  } else {
+  } else if (appData.viewMode === 'week') {
     const end = addDays(d, 13);
     label = (d.getMonth() + 1) + '월 ' + d.getDate() + '일 - ' + (end.getMonth() + 1) + '월 ' + end.getDate() + '일';
+  } else {
+    label = '전체 기간';
   }
   document.getElementById('dateLabel').textContent = label;
 }
@@ -662,9 +780,27 @@ function getVisibleDays() {
     const year = start.getFullYear(), month = start.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
-  } else {
+  } else if (appData.viewMode === 'week') {
     const monday = getMonday(start);
     for (let i = 0; i < 14; i++) days.push(addDays(monday, i));
+  } else {
+    // 전체: earliest task start ~ latest task end
+    const projects = appData.selectedProjectId
+      ? appData.projects.filter(p => p.id === appData.selectedProjectId)
+      : appData.projects;
+    const allTasks = [];
+    projects.forEach(p => p.tasks.forEach(t => allTasks.push(t)));
+    if (allTasks.length === 0) {
+      const today = new Date();
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      for (let i = 1; i <= daysInMonth; i++) days.push(new Date(today.getFullYear(), today.getMonth(), i));
+    } else {
+      const minDate = allTasks.map(t => t.startDate).sort()[0];
+      const maxDate = allTasks.map(t => t.endDate).sort().reverse()[0];
+      let d = parseDate(minDate);
+      const end = parseDate(maxDate);
+      while (d <= end) { days.push(new Date(d)); d.setDate(d.getDate() + 1); }
+    }
   }
   return days;
 }
@@ -713,24 +849,33 @@ function renderGantt() {
 
   html += '<div class="gantt-body" style="position:relative;">';
 
-  // Grid columns
-  days.forEach((d, i) => {
-    const we = isWeekend(d) ? ' weekend' : '';
-    html += `<div class="gantt-grid-col${we}" style="left:${220 + i * dayWidth}px;width:${dayWidth}px;"></div>`;
-  });
-
-  // Today line
-  const todayDate = parseDate(today);
-  if (todayDate >= rangeStart && todayDate < rangeEnd) {
-    const todayPos = 220 + daysBetween(rangeStart, todayDate) * dayWidth + dayWidth / 2;
-    html += `<div class="gantt-today-line" style="left:${todayPos}px;"><div class="gantt-today-dot"></div></div>`;
-  }
-
   if (tasks.length === 0) {
     html += `<div class="empty-state" style="min-height:200px;"><div class="empty-state-icon">📋</div><div class="empty-state-text">표시할 업무가 없습니다.<br>업무를 추가해보세요.</div></div>`;
+  } else {
+    // Grid columns
+    days.forEach((d, i) => {
+      const we = isWeekend(d) ? ' weekend' : '';
+      html += `<div class="gantt-grid-col${we}" style="left:${220 + i * dayWidth}px;width:${dayWidth}px;"></div>`;
+    });
+
+    // Today line
+    const todayDate = parseDate(today);
+    if (todayDate >= rangeStart && todayDate < rangeEnd) {
+      const todayPos = 220 + daysBetween(rangeStart, todayDate) * dayWidth + dayWidth / 2;
+      html += `<div class="gantt-today-line" style="left:${todayPos}px;"><div class="gantt-today-dot"></div></div>`;
+    }
   }
 
   tasks.forEach(({ task, project }) => {
+    if (!task.startDate || !task.endDate) {
+      html += `<div class="gantt-row">
+        <div class="gantt-row-label" onclick="openScheduleModal('${project.id}','${task.id}')">
+          <div class="gantt-row-dot" style="background:${CATEGORY_COLORS[task.category]||project.color};"></div>
+          <div class="gantt-row-info"><div class="gantt-row-name">${esc(task.name)}</div>
+          <div class="gantt-row-assignee" style="color:#cbd5e1;">일정 미등록</div></div></div>
+        <div class="gantt-row-timeline"></div></div>`;
+      return;
+    }
     const tStart = parseDate(task.startDate);
     const tEnd = parseDate(task.endDate);
     const barStart = Math.max(0, daysBetween(rangeStart, tStart));
@@ -740,7 +885,7 @@ function renderGantt() {
     const visible = barEnd > 0 && barStart < days.length;
 
     html += `<div class="gantt-row">`;
-    html += `<div class="gantt-row-label" onclick="openTaskModal('${project.id}','${task.id}')">
+    html += `<div class="gantt-row-label" onclick="openScheduleModal('${project.id}','${task.id}')">
       <div class="gantt-row-dot" style="background:${project.color};"></div>
       <div class="gantt-row-info"><div class="gantt-row-name">${esc(task.name)}</div>
       <div class="gantt-row-assignee">${esc(task.assignee)}</div></div></div>`;
@@ -775,7 +920,12 @@ function getVisibleTasks() {
       }
     });
   });
-  result.sort((a, b) => a.task.startDate.localeCompare(b.task.startDate));
+  if (appData.taskSortMode === 'manual') {
+    // 배열 순서(order 필드) 기준
+    result.sort((a, b) => (a.task.order ?? 0) - (b.task.order ?? 0));
+  } else {
+    result.sort((a, b) => a.task.name.localeCompare(b.task.name, 'ko'));
+  }
   return result;
 }
 
@@ -801,23 +951,42 @@ function showTooltip(e, name, assignee, start, end, progress, status, category) 
 function hideTooltip() { document.getElementById('tooltip').style.display = 'none'; }
 
 // ========== Task Table ==========
+function moveTask(projectId, taskId, dir) {
+  const p = appData.projects.find(x => x.id === projectId);
+  if (!p) return;
+  // Ensure order fields are set
+  p.tasks.forEach((t, i) => { if (t.order === undefined) t.order = i; });
+  p.tasks.sort((a, b) => a.order - b.order);
+  const idx = p.tasks.findIndex(t => t.id === taskId);
+  const swapIdx = idx + dir;
+  if (swapIdx < 0 || swapIdx >= p.tasks.length) return;
+  const tmp = p.tasks[idx].order;
+  p.tasks[idx].order = p.tasks[swapIdx].order;
+  p.tasks[swapIdx].order = tmp;
+  appData.taskSortMode = 'manual';
+  saveData();
+  render();
+}
+
 function renderTaskTable() {
   const tasks = getVisibleTasks();
   document.getElementById('taskCount').textContent = tasks.length + '개';
   let html = '';
   tasks.forEach(({ task, project }) => {
-    html += `<tr onclick="openTaskModal('${project.id}','${task.id}')">
-      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${project.color};margin-right:6px;vertical-align:middle;"></span>${esc(project.name)}</td>
+    const hasSchedule = task.startDate && task.endDate;
+    const period = hasSchedule
+      ? `<span style="font-size:12px;">${formatDateFull(task.startDate)} ~ ${formatDateFull(task.endDate)}</span>`
+      : '<span style="color:#cbd5e1;">미등록</span>';
+    html += `<tr style="cursor:pointer;" onclick="openScheduleModal('${project.id}','${task.id}')">
       <td><strong>${esc(task.name)}</strong></td>
       <td><span class="status-badge cat-${task.category||'기획'}">${esc(task.category||'기획')}</span></td>
-      <td>${esc(task.assignee)}</td>
-      <td>${formatDateFull(task.startDate)}</td>
-      <td>${formatDateFull(task.endDate)}</td>
-      <td><div class="progress-bar-mini"><div class="progress-bar-mini-fill" style="width:${task.progress}%;background:${project.color};"></div></div> ${task.progress}%</td>
-      <td><span class="status-badge status-${task.status}">${task.status}</span></td>
+      <td>${task.assignee ? esc(task.assignee) : '<span style="color:#cbd5e1;">-</span>'}</td>
+      <td>${period}</td>
+      <td>${hasSchedule ? `<div style="display:flex;align-items:center;gap:6px;"><div class="progress-bar-mini" style="flex:1;"><div class="progress-bar-mini-fill" style="width:${task.progress}%;background:${project.color};"></div></div><span style="font-size:12px;white-space:nowrap;">${task.progress}%</span></div>` : '<span style="color:#cbd5e1;">-</span>'}</td>
+      <td>${hasSchedule ? `<span class="status-badge status-${task.status}">${task.status}</span>` : '<span style="color:#cbd5e1;">-</span>'}</td>
     </tr>`;
   });
-  document.getElementById('taskTableBody').innerHTML = html || '<tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8;">업무가 없습니다.</td></tr>';
+  document.getElementById('taskTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8;">업무가 없습니다.</td></tr>';
 }
 
 // ========== Project CRUD ==========
@@ -832,11 +1001,15 @@ function openProjectModal(id) {
     const p = appData.projects.find(x => x.id === id);
     titleEl.textContent = '프로젝트 수정';
     nameInput.value = p.name;
+    document.getElementById('projectManagerInput').value = p.manager || '';
+    document.getElementById('projectDescInput').value = p.description || '';
     selectedColor = p.color;
     deleteBtn.style.display = 'block';
   } else {
     titleEl.textContent = '새 프로젝트';
     nameInput.value = '';
+    document.getElementById('projectManagerInput').value = '';
+    document.getElementById('projectDescInput').value = '';
     selectedColor = PROJECT_COLORS[0];
     deleteBtn.style.display = 'none';
   }
@@ -857,13 +1030,17 @@ function selectColor(c) { selectedColor = c; renderColorPicker(); }
 function saveProject() {
   const name = document.getElementById('projectNameInput').value.trim();
   if (!name) { document.getElementById('projectNameInput').focus(); return; }
+  const manager = document.getElementById('projectManagerInput').value.trim();
+  const description = document.getElementById('projectDescInput').value.trim();
 
   if (editingProjectId) {
     const p = appData.projects.find(x => x.id === editingProjectId);
     p.name = name;
+    p.manager = manager;
+    p.description = description;
     p.color = selectedColor;
   } else {
-    appData.projects.push({ id: generateId('p'), name, color: selectedColor, tasks: [] });
+    appData.projects.push({ id: generateId('p'), name, manager, description, color: selectedColor, tasks: [] });
   }
   saveData();
   closeModal('projectModal');
@@ -888,104 +1065,262 @@ function deleteProject(id) {
 
 // ========== Task CRUD ==========
 function openTaskModal(projectId, taskId) {
-  editingTaskId = taskId || null;
-  editingTaskProjectId = projectId || null;
-  const modal = document.getElementById('taskModal');
-  const titleEl = document.getElementById('taskModalTitle');
-  const deleteBtn = document.getElementById('taskDeleteBtn');
-
-  // Project select
-  const projSel = document.getElementById('taskProjectSelect');
-  projSel.innerHTML = appData.projects.map(p =>
-    `<option value="${p.id}" ${p.id === (projectId || appData.selectedProjectId) ? 'selected' : ''}>${esc(p.name)}</option>`
-  ).join('');
-
-  if (taskId && projectId) {
-    const p = appData.projects.find(x => x.id === projectId);
-    const t = p.tasks.find(x => x.id === taskId);
-    titleEl.textContent = '업무 수정';
-    document.getElementById('taskNameInput').value = t.name;
-    document.getElementById('taskAssigneeInput').value = t.assignee;
-    document.getElementById('taskCategorySelect').value = t.category || '기획';
-    document.getElementById('taskStartInput').value = t.startDate;
-    document.getElementById('taskEndInput').value = t.endDate;
-    document.getElementById('taskProgressInput').value = t.progress;
-    document.getElementById('progressValue').textContent = t.progress + '%';
-    document.getElementById('taskStatusSelect').value = t.status;
-    deleteBtn.style.display = 'block';
-  } else {
-    titleEl.textContent = '새 업무';
-    document.getElementById('taskNameInput').value = '';
-    document.getElementById('taskAssigneeInput').value = '';
-    document.getElementById('taskCategorySelect').value = '기획';
-    document.getElementById('taskStartInput').value = todayStr();
-    document.getElementById('taskEndInput').value = dateToStr(addDays(new Date(), 7));
-    document.getElementById('taskProgressInput').value = 0;
-    document.getElementById('progressValue').textContent = '0%';
-    document.getElementById('taskStatusSelect').value = '대기';
-    deleteBtn.style.display = 'none';
-  }
-
   if (appData.projects.length === 0) {
     alert('먼저 프로젝트를 추가해주세요.');
     return;
   }
 
-  modal.classList.add('active');
+  clearTaskNameError();
+  document.getElementById('taskNameInput').value = '';
+
+  const projGroup = document.getElementById('taskProjectGroup');
+  const projSel = document.getElementById('taskProjectSelect');
+  const inProjectView = !!appData.selectedProjectId;
+  projGroup.style.display = inProjectView ? 'none' : '';
+  projSel.innerHTML = appData.projects.map(p =>
+    `<option value="${p.id}" ${p.id === (projectId || appData.selectedProjectId) ? 'selected' : ''}>${esc(p.name)}</option>`
+  ).join('');
+
+  const resolvedProjId = appData.selectedProjectId || projectId || appData.projects[0]?.id;
+  renderModalTaskList(resolvedProjId, taskId || null);
+
+  document.getElementById('taskModal').classList.add('active');
   document.getElementById('taskNameInput').focus();
 }
 
 function saveTask() {
-  const projId = document.getElementById('taskProjectSelect').value;
+  const projGroup = document.getElementById('taskProjectGroup');
+  const projId = projGroup.style.display === 'none'
+    ? appData.selectedProjectId
+    : document.getElementById('taskProjectSelect').value;
   const name = document.getElementById('taskNameInput').value.trim();
-  const assignee = document.getElementById('taskAssigneeInput').value.trim();
-  const category = document.getElementById('taskCategorySelect').value;
-  const startDate = document.getElementById('taskStartInput').value;
-  const endDate = document.getElementById('taskEndInput').value;
-  const progress = parseInt(document.getElementById('taskProgressInput').value);
-  const status = document.getElementById('taskStatusSelect').value;
 
   if (!name) { document.getElementById('taskNameInput').focus(); return; }
-  if (!startDate || !endDate) { alert('날짜를 입력해주세요.'); return; }
-  if (endDate < startDate) { alert('종료일은 시작일 이후여야 합니다.'); return; }
 
-  const taskData = { name, assignee, category, startDate, endDate, progress, status };
-
-  if (editingTaskId && editingTaskProjectId) {
-    // If project changed, move task
-    if (editingTaskProjectId !== projId) {
-      const oldProj = appData.projects.find(x => x.id === editingTaskProjectId);
-      oldProj.tasks = oldProj.tasks.filter(x => x.id !== editingTaskId);
-      const newProj = appData.projects.find(x => x.id === projId);
-      newProj.tasks.push({ id: editingTaskId, ...taskData });
-    } else {
-      const p = appData.projects.find(x => x.id === projId);
-      const t = p.tasks.find(x => x.id === editingTaskId);
-      Object.assign(t, taskData);
-    }
-  } else {
-    const p = appData.projects.find(x => x.id === projId);
-    p.tasks.push({ id: generateId('t'), ...taskData });
+  const targetProj = appData.projects.find(x => x.id === projId);
+  const isDuplicate = targetProj && targetProj.tasks.some(t => t.name === name);
+  if (isDuplicate) {
+    const inp = document.getElementById('taskNameInput');
+    const err = document.getElementById('taskNameError');
+    err.textContent = `'${name}' 업무명이 이미 등록되어 있습니다.`;
+    err.classList.add('show');
+    inp.classList.add('input-error');
+    inp.focus();
+    return;
   }
+
+  const maxOrder = targetProj.tasks.reduce((m, t) => Math.max(m, t.order ?? 0), -1);
+  targetProj.tasks.push({ id: generateId('t'), order: maxOrder + 1, name, category: '기획', assignee: '', startDate: '', endDate: '', progress: 0, status: '대기' });
   saveData();
-  closeModal('taskModal');
+  renderModalTaskList(projId);
   render();
+  document.getElementById('taskNameInput').value = '';
+  document.getElementById('taskNameInput').focus();
+  clearTaskNameError();
 }
 
 function deleteTask() {
-  if (!editingTaskId || !editingTaskProjectId) return;
-  const p = appData.projects.find(x => x.id === editingTaskProjectId);
-  const t = p.tasks.find(x => x.id === editingTaskId);
+  // legacy — kept for compatibility, actual deletion uses deleteTaskFromModal
+}
+
+let _modalDragSrcId = null;
+let _modalDragProjId = null;
+
+function renderModalTaskList(projectId, editTaskId) {
+  const projId = projectId || appData.selectedProjectId || document.getElementById('taskProjectSelect')?.value;
+  const p = appData.projects.find(x => x.id === projId);
+  const container = document.getElementById('modalTaskList');
+  if (!container) return;
+  if (!p || p.tasks.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:13px;">등록된 업무가 없습니다.</div>';
+    return;
+  }
+  const sorted = [...p.tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  container.innerHTML = sorted.map(t => {
+    if (t.id === editTaskId) {
+      return `<div class="modal-task-item editing" id="mti-${t.id}">
+        <span class="drag-handle">⠿</span>
+        <input type="text" id="edit-name-${t.id}" value="${esc(t.name)}" style="flex:1;min-width:0;font-size:14px;padding:6px 10px;border:1px solid #bfdbfe;border-radius:6px;outline:none;" onkeydown="if(event.key==='Enter')saveModalTaskEdit('${projId}','${t.id}')">
+        <button class="btn-icon-sm" style="color:#2563eb;border-color:#bfdbfe;" title="저장" onclick="saveModalTaskEdit('${projId}','${t.id}')">✓</button>
+        <button class="btn-icon-sm" style="color:#94a3b8;" title="취소" onclick="renderModalTaskList('${projId}')">✕</button>
+      </div>`;
+    }
+    return `<div class="modal-task-item" id="mti-${t.id}" draggable="true"
+        ondragstart="onModalDragStart(event,'${projId}','${t.id}')"
+        ondragover="onModalDragOver(event)"
+        ondragleave="onModalDragLeave(event)"
+        ondrop="onModalDrop(event,'${projId}','${t.id}')"
+        ondragend="onModalDragEnd(event)">
+      <span class="drag-handle">⠿</span>
+      <span style="flex:1;font-size:14px;color:#334155;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.name)}</span>
+      <button class="btn-icon-sm" style="color:#2563eb;border-color:#bfdbfe;" title="수정" onclick="renderModalTaskList('${projId}','${t.id}')">✎</button>
+      <button class="btn-task-delete" title="삭제" onclick="deleteTaskFromModal('${projId}','${t.id}')">✕</button>
+    </div>`;
+  }).join('');
+  if (editTaskId) {
+    const el = document.getElementById(`edit-name-${editTaskId}`);
+    if (el) el.focus();
+  }
+}
+
+function onModalDragStart(e, projId, taskId) {
+  _modalDragSrcId = taskId;
+  _modalDragProjId = projId;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { const el = document.getElementById('mti-' + taskId); if (el) el.classList.add('dragging'); }, 0);
+}
+function onModalDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+function onModalDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+function onModalDrop(e, projId, taskId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (_modalDragSrcId === taskId) return;
+  const p = appData.projects.find(x => x.id === projId);
+  const sorted = [...p.tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const srcIdx = sorted.findIndex(t => t.id === _modalDragSrcId);
+  const dstIdx = sorted.findIndex(t => t.id === taskId);
+  if (srcIdx < 0 || dstIdx < 0) return;
+  const [moved] = sorted.splice(srcIdx, 1);
+  sorted.splice(dstIdx, 0, moved);
+  sorted.forEach((t, i) => { t.order = i; });
+  saveData();
+  renderModalTaskList(projId);
+  render();
+}
+function onModalDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.modal-task-item').forEach(el => el.classList.remove('drag-over'));
+}
+
+function saveModalTaskEdit(projectId, taskId) {
+  const nameEl = document.getElementById(`edit-name-${taskId}`);
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) { if (nameEl) nameEl.focus(); return; }
+  const p = appData.projects.find(x => x.id === projectId);
+  if (p.tasks.some(x => x.name === name && x.id !== taskId)) {
+    alert(`'${name}' 업무명이 이미 등록되어 있습니다.`);
+    if (nameEl) nameEl.focus();
+    return;
+  }
+  const t = p.tasks.find(x => x.id === taskId);
+  t.name = name;
+  saveData();
+  renderModalTaskList(projectId);
+  render();
+}
+
+function deleteTaskFromModal(projectId, taskId) {
+  const p = appData.projects.find(x => x.id === projectId);
+  const t = p.tasks.find(x => x.id === taskId);
   document.getElementById('confirmMessage').textContent = `"${t.name}" 업무를 삭제하시겠습니까?`;
   document.getElementById('confirmDeleteBtn').onclick = () => {
-    p.tasks = p.tasks.filter(x => x.id !== editingTaskId);
+    p.tasks = p.tasks.filter(x => x.id !== taskId);
     saveData();
     closeModal('confirmModal');
-    closeModal('taskModal');
+    renderModalTaskList(projectId);
     render();
   };
   document.getElementById('confirmModal').classList.add('active');
 }
+
+function moveTaskInModal(projectId, taskId, dir) {
+  moveTask(projectId, taskId, dir);
+  renderModalTaskList(projectId);
+}
+
+function onModalProjectChange() {
+  const projId = document.getElementById('taskProjectSelect').value;
+  renderModalTaskList(projId);
+}
+
+function clearTaskNameError() {
+  document.getElementById('taskNameError').classList.remove('show');
+  document.getElementById('taskNameInput').classList.remove('input-error');
+}
+
+// ========== Schedule CRUD ==========
+let editingScheduleProjectId = null;
+let editingScheduleTaskId = null;
+
+function openScheduleModal(projectId, taskId) {
+  const resolvedProjId = projectId || appData.selectedProjectId;
+  editingScheduleProjectId = resolvedProjId;
+  const p = appData.projects.find(x => x.id === resolvedProjId);
+  if (!p) return;
+
+  const selectorGroup = document.getElementById('scheduleTaskSelectorGroup');
+  const nameGroup = document.getElementById('scheduleTaskNameGroup');
+
+  if (!taskId) {
+    // 헤더 "일정 등록" 버튼에서 열린 경우 — 업무 선택 드롭다운 표시
+    if (!p.tasks.length) { alert('먼저 업무를 추가해주세요.'); return; }
+    selectorGroup.style.display = '';
+    nameGroup.style.display = 'none';
+    const sel = document.getElementById('scheduleTaskSelect');
+    sel.innerHTML = p.tasks.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    const firstTask = p.tasks[0];
+    sel.value = firstTask.id;
+    editingScheduleTaskId = firstTask.id;
+    document.getElementById('scheduleModalTitle').textContent = firstTask.startDate ? '일정 수정' : '일정 등록';
+    populateScheduleForm(firstTask);
+  } else {
+    // 특정 업무에서 열린 경우
+    selectorGroup.style.display = 'none';
+    nameGroup.style.display = '';
+    editingScheduleTaskId = taskId;
+    const t = p.tasks.find(x => x.id === taskId);
+    document.getElementById('scheduleModalTitle').textContent = t.startDate ? '일정 수정' : '일정 등록';
+    document.getElementById('scheduleTaskName').textContent = t.name;
+    populateScheduleForm(t);
+  }
+  document.getElementById('scheduleModal').classList.add('active');
+  document.getElementById('scheduleAssigneeInput').focus();
+}
+
+function populateScheduleForm(t) {
+  document.getElementById('scheduleAssigneeInput').value = t.assignee || '';
+  document.getElementById('scheduleStartInput').value = t.startDate || todayStr();
+  document.getElementById('scheduleEndInput').value = t.endDate || dateToStr(addDays(new Date(), 7));
+  document.getElementById('scheduleProgressInput').value = t.progress || 0;
+  document.getElementById('scheduleProgressValue').textContent = (t.progress || 0) + '%';
+  document.getElementById('scheduleStatusSelect').value = t.status || '대기';
+}
+
+function onScheduleTaskChange() {
+  const taskId = document.getElementById('scheduleTaskSelect').value;
+  editingScheduleTaskId = taskId;
+  const p = appData.projects.find(x => x.id === editingScheduleProjectId);
+  const t = p.tasks.find(x => x.id === taskId);
+  if (t) {
+    document.getElementById('scheduleModalTitle').textContent = t.startDate ? '일정 수정' : '일정 등록';
+    populateScheduleForm(t);
+  }
+}
+
+function saveSchedule() {
+  const assignee = document.getElementById('scheduleAssigneeInput').value.trim();
+  const startDate = document.getElementById('scheduleStartInput').value;
+  const status = document.getElementById('scheduleStatusSelect').value;
+  const endDate = status === '완료' ? todayStr() : document.getElementById('scheduleEndInput').value;
+  const progress = status === '완료' ? 100 : parseInt(document.getElementById('scheduleProgressInput').value);
+
+  if (!startDate || !endDate) { alert('날짜를 입력해주세요.'); return; }
+  if (endDate < startDate) { alert('종료일은 시작일 이후여야 합니다.'); return; }
+
+  const p = appData.projects.find(x => x.id === editingScheduleProjectId);
+  const t = p.tasks.find(x => x.id === editingScheduleTaskId);
+  Object.assign(t, { assignee, startDate, endDate, progress, status });
+  saveData();
+  closeModal('scheduleModal');
+  render();
+}
+
 
 // ========== Modal Helpers ==========
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
@@ -1008,9 +1343,15 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // ========== Init ==========
 function init() {
   if (!loadData()) initSampleData();
-  // Migrate old data: add category if missing
+  // Migrate old data
+  if (!appData.taskSortMode) appData.taskSortMode = 'name';
   appData.projects.forEach(p => {
-    p.tasks.forEach(t => { if (!t.category) t.category = '기획'; });
+    if (p.manager === undefined) p.manager = '';
+    if (p.description === undefined) p.description = '';
+    p.tasks.forEach((t, i) => {
+      if (!t.category) t.category = '기획';
+      if (t.order === undefined) t.order = i;
+    });
   });
   // Ensure currentDate is set
   if (!appData.currentDate) appData.currentDate = todayStr();
