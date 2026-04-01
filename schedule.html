@@ -437,6 +437,15 @@
         <div id="scheduleTaskName" style="font-size:14px;font-weight:600;color:#0f172a;padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;"></div>
       </div>
       <div class="form-group">
+        <label>담당부서</label>
+        <select id="scheduleDeptSelect">
+          <option value="기획">기획</option>
+          <option value="개발">개발</option>
+          <option value="디자인">디자인</option>
+          <option value="마크업">마크업</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label>담당자</label>
         <input type="text" id="scheduleAssigneeInput" placeholder="담당자 이름">
       </div>
@@ -1284,6 +1293,7 @@ function openScheduleModal(projectId, taskId) {
 }
 
 function populateScheduleForm(t) {
+  document.getElementById('scheduleDeptSelect').value = t.category || '기획';
   document.getElementById('scheduleAssigneeInput').value = t.assignee || '';
   document.getElementById('scheduleStartInput').value = t.startDate || todayStr();
   document.getElementById('scheduleEndInput').value = t.endDate || dateToStr(addDays(new Date(), 7));
@@ -1304,6 +1314,7 @@ function onScheduleTaskChange() {
 }
 
 function saveSchedule() {
+  const category = document.getElementById('scheduleDeptSelect').value;
   const assignee = document.getElementById('scheduleAssigneeInput').value.trim();
   const startDate = document.getElementById('scheduleStartInput').value;
   const status = document.getElementById('scheduleStatusSelect').value;
@@ -1315,7 +1326,7 @@ function saveSchedule() {
 
   const p = appData.projects.find(x => x.id === editingScheduleProjectId);
   const t = p.tasks.find(x => x.id === editingScheduleTaskId);
-  Object.assign(t, { assignee, startDate, endDate, progress, status });
+  Object.assign(t, { category, assignee, startDate, endDate, progress, status });
   saveData();
   closeModal('scheduleModal');
   render();
