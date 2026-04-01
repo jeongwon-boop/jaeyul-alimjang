@@ -1267,16 +1267,18 @@ function openScheduleModal(projectId, taskId) {
   const nameGroup = document.getElementById('scheduleTaskNameGroup');
 
   if (!taskId) {
-    // 헤더 "일정 등록" 버튼에서 열린 경우 — 업무 선택 드롭다운 표시
+    // 헤더 "일정 등록" 버튼에서 열린 경우 — 일정 미등록 업무만 드롭다운 표시
     if (!p.tasks.length) { alert('먼저 업무를 추가해주세요.'); return; }
+    const unscheduled = p.tasks.filter(t => !t.startDate);
+    if (!unscheduled.length) { alert('모든 업무에 일정이 이미 등록되어 있습니다.\n업무 목록에서 클릭하여 수정하세요.'); return; }
     selectorGroup.style.display = '';
     nameGroup.style.display = 'none';
     const sel = document.getElementById('scheduleTaskSelect');
-    sel.innerHTML = p.tasks.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
-    const firstTask = p.tasks[0];
+    sel.innerHTML = unscheduled.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    const firstTask = unscheduled[0];
     sel.value = firstTask.id;
     editingScheduleTaskId = firstTask.id;
-    document.getElementById('scheduleModalTitle').textContent = firstTask.startDate ? '일정 수정' : '일정 등록';
+    document.getElementById('scheduleModalTitle').textContent = '일정 등록';
     populateScheduleForm(firstTask);
   } else {
     // 특정 업무에서 열린 경우
@@ -1308,7 +1310,7 @@ function onScheduleTaskChange() {
   const p = appData.projects.find(x => x.id === editingScheduleProjectId);
   const t = p.tasks.find(x => x.id === taskId);
   if (t) {
-    document.getElementById('scheduleModalTitle').textContent = t.startDate ? '일정 수정' : '일정 등록';
+    document.getElementById('scheduleModalTitle').textContent = '일정 등록';
     populateScheduleForm(t);
   }
 }
