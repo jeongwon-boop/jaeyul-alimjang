@@ -506,6 +506,7 @@
 <script>
 // ========== Constants ==========
 const STORAGE_KEY = 'planningScheduleData';
+const API_BASE = 'http://localhost:3000/api';
 const PROJECT_COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6366f1'];
 const STATUS_COLORS = { '대기': '#8b5cf6', '진행중': '#f59e0b', '완료': '#16a34a', '지연': '#dc2626' };
 const CATEGORY_COLORS = { '기획': '#2563eb', '개발': '#16a34a', '디자인': '#db2777', '마크업': '#d97706' };
@@ -534,17 +535,40 @@ function isWeekend(d) { const day = d.getDay(); return day === 0 || day === 6; }
 function getMonday(d) { const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.getFullYear(), d.getMonth(), diff); }
 
 // ========== Data ==========
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { appData = JSON.parse(raw); return true; }
-  } catch (e) { console.error('Load error', e); }
-  return false;
-}
+const UI_STATE_KEY = 'scheduleUIState';
 
 function saveData() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
-  catch (e) { console.error('Save error', e); }
+  // UI 상태(뷰 모드, 선택된 프로젝트 등)만 localStorage에 저장
+  try {
+    localStorage.setItem(UI_STATE_KEY, JSON.stringify({
+      selectedProjectId: appData.selectedProjectId,
+      viewMode:          appData.viewMode,
+      currentDate:       appData.currentDate,
+      taskSortMode:      appData.taskSortMode
+    }));
+  } catch (e) { console.error('UI state save error', e); }
+}
+
+async function loadData() {
+  // UI 상태 복원
+  try {
+    const ui = JSON.parse(localStorage.getItem(UI_STATE_KEY) || '{}');
+    appData.selectedProjectId = ui.selectedProjectId ?? null;
+    appData.viewMode           = ui.viewMode           ?? 'month';
+    appData.currentDate        = ui.currentDate        ?? todayStr();
+    appData.taskSortMode       = ui.taskSortMode       ?? 'manual';
+  } catch (_) {}
+  // 서버에서 프로젝트+업무 로드
+  try {
+    const res = await fetch(`${API_BASE}/projects`);
+    if (!res.ok) throw new Error('서버 오류: ' + res.status);
+    appData.projects = await res.json();
+    return true;
+  } catch (e) {
+    console.error('Load error', e);
+    alert('서버에 연결할 수 없습니다.\nnode server.js 를 먼저 실행해주세요.\n\n오류: ' + e.message);
+    return false;
+  }
 }
 
 function initSampleData() {
@@ -895,7 +919,7 @@ function renderGantt() {
 
     html += `<div class="gantt-row">`;
     html += `<div class="gantt-row-label" onclick="openScheduleModal('${project.id}','${task.id}')">
-      <div class="gantt-row-dot" style="background:${project.color};"></div>
+      <div class="gantt-row-dot" style="background:${CATEGORY_COLORS[task.category]||project.color};"></div>
       <div class="gantt-row-info"><div class="gantt-row-name">${esc(task.name)}</div>
       <div class="gantt-row-assignee">${esc(task.assignee)}</div></div></div>`;
     html += '<div class="gantt-row-timeline">';
@@ -991,7 +1015,7 @@ function renderTaskTable() {
       <td><span class="status-badge cat-${task.category||'기획'}">${esc(task.category||'기획')}</span></td>
       <td>${task.assignee ? esc(task.assignee) : '<span style="color:#cbd5e1;">-</span>'}</td>
       <td>${period}</td>
-      <td>${hasSchedule ? `<div style="display:flex;align-items:center;gap:6px;"><div class="progress-bar-mini" style="flex:1;"><div class="progress-bar-mini-fill" style="width:${task.progress}%;background:${project.color};"></div></div><span style="font-size:12px;white-space:nowrap;">${task.progress}%</span></div>` : '<span style="color:#cbd5e1;">-</span>'}</td>
+      <td>${hasSchedule ? `<div style="display:flex;align-items:center;gap:6px;"><div class="progress-bar-mini" style="flex:1;"><div class="progress-bar-mini-fill" style="width:${task.progress}%;background:${CATEGORY_COLORS[task.category]||project.color};"></div></div><span style="font-size:12px;white-space:nowrap;">${task.progress}%</span></div>` : '<span style="color:#cbd5e1;">-</span>'}</td>
       <td>${hasSchedule ? `<span class="status-badge status-${task.status}">${task.status}</span>` : '<span style="color:#cbd5e1;">-</span>'}</td>
     </tr>`;
   });
@@ -1036,24 +1060,35 @@ function renderColorPicker() {
 
 function selectColor(c) { selectedColor = c; renderColorPicker(); }
 
-function saveProject() {
+async function saveProject() {
   const name = document.getElementById('projectNameInput').value.trim();
   if (!name) { document.getElementById('projectNameInput').focus(); return; }
   const manager = document.getElementById('projectManagerInput').value.trim();
   const description = document.getElementById('projectDescInput').value.trim();
 
-  if (editingProjectId) {
-    const p = appData.projects.find(x => x.id === editingProjectId);
-    p.name = name;
-    p.manager = manager;
-    p.description = description;
-    p.color = selectedColor;
-  } else {
-    appData.projects.push({ id: generateId('p'), name, manager, description, color: selectedColor, tasks: [] });
-  }
-  saveData();
-  closeModal('projectModal');
-  render();
+  try {
+    if (editingProjectId) {
+      const res = await fetch(`${API_BASE}/projects/${editingProjectId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, manager, description, color: selectedColor })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const p = appData.projects.find(x => x.id === editingProjectId);
+      Object.assign(p, { name, manager, description, color: selectedColor });
+    } else {
+      const id = generateId('p');
+      const res = await fetch(`${API_BASE}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name, manager, description, color: selectedColor })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      appData.projects.push({ id, name, manager, description, color: selectedColor, tasks: [] });
+    }
+    closeModal('projectModal');
+    render();
+  } catch (e) { alert('저장 실패: ' + e.message); }
 }
 
 function deleteProject(id) {
@@ -1061,13 +1096,16 @@ function deleteProject(id) {
   if (!pid) return;
   const p = appData.projects.find(x => x.id === pid);
   document.getElementById('confirmMessage').textContent = `"${p.name}" 프로젝트를 삭제하시겠습니까? 포함된 모든 업무도 삭제됩니다.`;
-  document.getElementById('confirmDeleteBtn').onclick = () => {
-    appData.projects = appData.projects.filter(x => x.id !== pid);
-    if (appData.selectedProjectId === pid) appData.selectedProjectId = null;
-    saveData();
-    closeModal('confirmModal');
-    closeModal('projectModal');
-    render();
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/projects/${pid}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      appData.projects = appData.projects.filter(x => x.id !== pid);
+      if (appData.selectedProjectId === pid) { appData.selectedProjectId = null; saveData(); }
+      closeModal('confirmModal');
+      closeModal('projectModal');
+      render();
+    } catch (e) { alert('삭제 실패: ' + e.message); }
   };
   document.getElementById('confirmModal').classList.add('active');
 }
@@ -1097,7 +1135,7 @@ function openTaskModal(projectId, taskId) {
   document.getElementById('taskNameInput').focus();
 }
 
-function saveTask() {
+async function saveTask() {
   const projGroup = document.getElementById('taskProjectGroup');
   const projId = projGroup.style.display === 'none'
     ? appData.selectedProjectId
@@ -1119,13 +1157,21 @@ function saveTask() {
   }
 
   const maxOrder = targetProj.tasks.reduce((m, t) => Math.max(m, t.order ?? 0), -1);
-  targetProj.tasks.push({ id: generateId('t'), order: maxOrder + 1, name, category: '기획', assignee: '', startDate: '', endDate: '', progress: 0, status: '대기' });
-  saveData();
-  renderModalTaskList(projId);
-  render();
-  document.getElementById('taskNameInput').value = '';
-  document.getElementById('taskNameInput').focus();
-  clearTaskNameError();
+  const newTask = { id: generateId('t'), order: maxOrder + 1, name, category: '기획', assignee: '', startDate: '', endDate: '', progress: 0, status: '대기' };
+  try {
+    const res = await fetch(`${API_BASE}/projects/${projId}/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newTask)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    targetProj.tasks.push(newTask);
+    renderModalTaskList(projId);
+    render();
+    document.getElementById('taskNameInput').value = '';
+    document.getElementById('taskNameInput').focus();
+    clearTaskNameError();
+  } catch (e) { alert('업무 추가 실패: ' + e.message); }
 }
 
 function deleteTask() {
@@ -1186,7 +1232,7 @@ function onModalDragOver(e) {
 function onModalDragLeave(e) {
   e.currentTarget.classList.remove('drag-over');
 }
-function onModalDrop(e, projId, taskId) {
+async function onModalDrop(e, projId, taskId) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (_modalDragSrcId === taskId) return;
@@ -1198,16 +1244,26 @@ function onModalDrop(e, projId, taskId) {
   const [moved] = sorted.splice(srcIdx, 1);
   sorted.splice(dstIdx, 0, moved);
   sorted.forEach((t, i) => { t.order = i; });
-  saveData();
-  renderModalTaskList(projId);
-  render();
+  try {
+    const res = await fetch(`${API_BASE}/projects/${projId}/tasks/reorder`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: sorted.map(t => t.id) })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    renderModalTaskList(projId);
+    render();
+  } catch (e) {
+    alert('순서 저장 실패: ' + e.message);
+    await loadData(); render();
+  }
 }
 function onModalDragEnd(e) {
   e.currentTarget.classList.remove('dragging');
   document.querySelectorAll('.modal-task-item').forEach(el => el.classList.remove('drag-over'));
 }
 
-function saveModalTaskEdit(projectId, taskId) {
+async function saveModalTaskEdit(projectId, taskId) {
   const nameEl = document.getElementById(`edit-name-${taskId}`);
   const name = nameEl ? nameEl.value.trim() : '';
   if (!name) { if (nameEl) nameEl.focus(); return; }
@@ -1217,23 +1273,32 @@ function saveModalTaskEdit(projectId, taskId) {
     if (nameEl) nameEl.focus();
     return;
   }
-  const t = p.tasks.find(x => x.id === taskId);
-  t.name = name;
-  saveData();
-  renderModalTaskList(projectId);
-  render();
+  try {
+    const res = await fetch(`${API_BASE}/projects/${projectId}/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    p.tasks.find(x => x.id === taskId).name = name;
+    renderModalTaskList(projectId);
+    render();
+  } catch (e) { alert('업무명 수정 실패: ' + e.message); }
 }
 
 function deleteTaskFromModal(projectId, taskId) {
   const p = appData.projects.find(x => x.id === projectId);
   const t = p.tasks.find(x => x.id === taskId);
   document.getElementById('confirmMessage').textContent = `"${t.name}" 업무를 삭제하시겠습니까?`;
-  document.getElementById('confirmDeleteBtn').onclick = () => {
-    p.tasks = p.tasks.filter(x => x.id !== taskId);
-    saveData();
-    closeModal('confirmModal');
-    renderModalTaskList(projectId);
-    render();
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/projects/${projectId}/tasks/${taskId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      p.tasks = p.tasks.filter(x => x.id !== taskId);
+      closeModal('confirmModal');
+      renderModalTaskList(projectId);
+      render();
+    } catch (e) { alert('삭제 실패: ' + e.message); }
   };
   document.getElementById('confirmModal').classList.add('active');
 }
@@ -1315,7 +1380,7 @@ function onScheduleTaskChange() {
   }
 }
 
-function saveSchedule() {
+async function saveSchedule() {
   const category = document.getElementById('scheduleDeptSelect').value;
   const assignee = document.getElementById('scheduleAssigneeInput').value.trim();
   const startDate = document.getElementById('scheduleStartInput').value;
@@ -1326,12 +1391,19 @@ function saveSchedule() {
   if (!startDate || !endDate) { alert('날짜를 입력해주세요.'); return; }
   if (endDate < startDate) { alert('종료일은 시작일 이후여야 합니다.'); return; }
 
-  const p = appData.projects.find(x => x.id === editingScheduleProjectId);
-  const t = p.tasks.find(x => x.id === editingScheduleTaskId);
-  Object.assign(t, { category, assignee, startDate, endDate, progress, status });
-  saveData();
-  closeModal('scheduleModal');
-  render();
+  try {
+    const res = await fetch(`${API_BASE}/projects/${editingScheduleProjectId}/tasks/${editingScheduleTaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category, assignee, startDate, endDate, progress, status })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const p = appData.projects.find(x => x.id === editingScheduleProjectId);
+    const t = p.tasks.find(x => x.id === editingScheduleTaskId);
+    Object.assign(t, { category, assignee, startDate, endDate, progress, status });
+    closeModal('scheduleModal');
+    render();
+  } catch (e) { alert('일정 저장 실패: ' + e.message); }
 }
 
 
@@ -1354,27 +1426,23 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // ========== Init ==========
-function init() {
-  if (!loadData()) initSampleData();
-  // Migrate old data
-  if (!appData.taskSortMode) appData.taskSortMode = 'name';
-  appData.projects.forEach(p => {
-    if (p.manager === undefined) p.manager = '';
-    if (p.description === undefined) p.description = '';
-    p.tasks.forEach((t, i) => {
-      if (!t.category) t.category = '기획';
-      if (t.order === undefined) t.order = i;
-    });
-  });
-  // Ensure currentDate is set
-  if (!appData.currentDate) appData.currentDate = todayStr();
-  if (!appData.viewMode) appData.viewMode = 'month';
-  // Set currentDate to current month start for month view
+async function init() {
+  // UI 상태 먼저 복원해서 render() 준비
+  try {
+    const ui = JSON.parse(localStorage.getItem(UI_STATE_KEY) || '{}');
+    appData.selectedProjectId = ui.selectedProjectId ?? null;
+    appData.viewMode           = ui.viewMode           ?? 'month';
+    appData.taskSortMode       = ui.taskSortMode       ?? 'manual';
+  } catch (_) {}
+  // 월뷰면 항상 이번달 1일로 고정
   if (appData.viewMode === 'month') {
     const today = new Date();
     appData.currentDate = dateToStr(new Date(today.getFullYear(), today.getMonth(), 1));
+  } else {
+    appData.currentDate = appData.currentDate || todayStr();
   }
-  saveData();
+
+  await loadData();
   render();
   setTimeout(scrollToToday, 100);
 }
