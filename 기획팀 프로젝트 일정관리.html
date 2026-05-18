@@ -126,6 +126,7 @@
   .deadline.strike { text-decoration: line-through; color: #94a3b8; }
   .period { font-family: ui-monospace, 'Menlo', 'Consolas', monospace; font-size: 11.5px; color: #1e40af; font-weight: 700; white-space: nowrap; background: #eff6ff; padding: 2px 6px; border-radius: 4px; display: inline-block; }
   .period.empty { color: #cbd5e1; background: transparent; font-weight: 400; padding: 0; }
+  .mm-tag { display: inline-block; margin-left: 4px; padding: 1px 6px; background: #fef9c3; color: #854d0e; border-radius: 4px; font-size: 10.5px; font-weight: 800; font-family: inherit; vertical-align: middle; }
   .note { color: #64748b; font-size: 11px; font-style: italic; }
 
   /* Gantt timeline cell */
@@ -409,7 +410,7 @@
     { cat:'공연', name:'사릇데시어터 글로벌 회원예매', owner:'임은혜', type:'연동', priority:'중', deadline:'1/14, 5/6', status:'QA', bars:[{from:0, to:0, label:'QA'}, {from:1, to:1, label:'1/14'}, {from:5, to:5, label:'QA'}], note:'' },
     { cat:'공연', name:'위버스 팬클럽 회원 연동', owner:'현예원', type:'연동', priority:'상', deadline:'04/17', status:'배포완료', bars:[], releaseBars:[{from:4.5, to:4.5, label:'4/17 완료'}], note:'배포 완료' },
     { cat:'공연', name:'GS칼텍스 예술마루', owner:'임은혜', type:'연동', priority:'하', deadline:'26년 3월', status:'배포대기', bars:[], note:'' },
-    { cat:'공연', name:'eKYC 인증 도입', owner:'현예원', type:'플랫폼', priority:'중', deadline:'26년 5월', status:'기획', bars:[], planBars:[{from:3.93, to:5}], note:'검토 03.30~ / 기획 04.13~' },
+    { cat:'공연', name:'eKYC 인증 도입', owner:'현예원', type:'플랫폼', priority:'중', deadline:'26년 5월', status:'기획', bars:[], planBars:[{from:3.93, to:5.75}], note:'검토 03.30~ / 기획 04.13~' },
     { cat:'공연', name:'키오스크 베리어프리 대응 (솔비포스)', owner:'임은혜', type:'연동', priority:'상', deadline:'26년 6월', status:'디자인', bars:[], note:'' },
     { cat:'공연', name:'부스터랩 연동 (포토카드)', owner:'엄재홍', type:'연동', priority:'상', deadline:'6/25', status:'개발', bars:[{from:5, to:6, label:'6/25 완료'}], note:'7월 첫째 주 공연부터 시작 / 품목: 포토카드' },
 
@@ -519,6 +520,22 @@
     return 0;
   }
 
+  // 맨먼스(인월) 계산: planBars + qaBars 의 총 기간 합. 배포(단일 날짜)는 제외.
+  // (to - from + 0.25) 가 한 phase의 기간(월 단위)
+  function calcMM(t) {
+    let mm = 0;
+    ['planBars', 'qaBars'].forEach(key => {
+      (t[key] || []).forEach(b => {
+        mm += Math.max(0, b.to - b.from + 0.25);
+      });
+    });
+    return mm > 0 ? mm : null;
+  }
+  function formatMM(mm) {
+    // 1.50 → 1.5 / 6.00 → 6 / 1.25 → 1.25
+    return Number(mm.toFixed(2)).toString();
+  }
+
   // ── 행 생성 ────────────────────────────────────────────────
   function createRow(t) {
     const effort = t.effort || '';
@@ -543,7 +560,13 @@
     prioTd.style.textAlign = 'center';
     tr.appendChild(prioTd);
     tr.appendChild(td(`<span class="deadline${t.deadlineStrike ? ' strike' : ''}">${t.deadline}</span>`, 'cell'));
-    tr.appendChild(td(`<span class="period${t.period ? '' : ' empty'}">${t.period || '-'}</span>`, 'cell'));
+    // 기간 + 맨먼스(MM)
+    const mm = calcMM(t);
+    const periodPart = t.period
+      ? `<span class="period">${t.period}</span>`
+      : `<span class="period empty">-</span>`;
+    const mmPart = mm != null ? `<span class="mm-tag">${formatMM(mm)} MM</span>` : '';
+    tr.appendChild(td(periodPart + mmPart, 'cell'));
     tr.appendChild(td(`<span class="status status-${t.status}">${t.status}</span>`, 'cell'));
 
     // 타임라인 (colspan)
@@ -580,9 +603,9 @@
           bar.style.left = (b.from * cellW + 6) + 'px'; // 주 시작점 기준 살짝 들여서 점 중심을 W 마크에 맞춤
           bar.title = `[배포] ${monthWeekLabel(b.from)}${b.label ? ' · ' + b.label : ''}`;
         } else {
-          // from/to를 week 인덱스(0.25 단위)로 해석. (to - from + 1) * cellW = 폭 (월 포함)
+          // from/to는 주 인덱스(0.25 = 1주). +0.25 = `to` 주 자체를 포함하기 위한 마진
           bar.style.left = (b.from * cellW + 1) + 'px';
-          bar.style.width = ((b.to - b.from + 1) * cellW - 2) + 'px';
+          bar.style.width = ((b.to - b.from + 0.25) * cellW - 2) + 'px';
           bar.title = `[${p.tag}] ${monthWeekLabel(b.from)} ~ ${monthWeekLabel(b.to)}${b.label ? ' · ' + b.label : ''}`;
         }
         // 막대 위 텍스트는 표시하지 않음 (요청에 따라)
@@ -942,6 +965,7 @@
 
   // ── 레거시 bars → 3단계(planBars/qaBars/releaseBars) 자동 분류 ─
   // 기존 데이터는 status를 기준으로 적절한 phase로 옮겨준다.
+  // 정수 to (예: to=5 = 5월) 는 "월 끝까지 포함" 의미라서 to+0.75 (W4 시작)로 보정
   (function migrateLegacyBars() {
     tasks.forEach(t => {
       if (!t.bars || !t.bars.length) return;
@@ -953,7 +977,13 @@
         if (t.status === '배포대기' || t.status === '배포완료') return 'releaseBars';
         return 'planBars';
       })();
-      if (!hasPhase) t[target] = [...t.bars];
+      if (!hasPhase) {
+        t[target] = t.bars.map(b => {
+          const newB = { ...b };
+          if (Number.isInteger(newB.to)) newB.to = newB.to + 0.75;
+          return newB;
+        });
+      }
       t.bars = [];
     });
   })();
