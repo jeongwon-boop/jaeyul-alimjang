@@ -57,6 +57,9 @@
   .gantt-table th.month-h .week-marks span { text-align: center; display: block; }
   .gantt-table td { padding: 0; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; font-size: 12.5px; vertical-align: middle; }
   .gantt-table td.cell { padding: 8px 8px; }
+  /* 프로젝트(4번째)·타임라인(11+)·메모(끝) 제외하고 헤더/본문 셀 모두 가운데 정렬 */
+  .gantt-table th:not(:nth-child(4)):not(:nth-child(n+11)),
+  .gantt-table tbody td:not(:nth-child(4)):not(:nth-child(n+11)) { text-align: center; }
   .gantt-table tbody tr:hover { background: #f8fafc; }
 
   /* Category badge */
@@ -119,7 +122,7 @@
   .modal-btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
   .modal-btn-secondary { background: white; color: #475569; border-color: #e2e8f0; }
   .modal-btn-secondary:hover { background: #f1f5f9; }
-  .owner { color: #475569; }
+  .owner { color: #475569; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
   .owner.empty { color: #cbd5e1; }
   .type { color: #64748b; font-size: 11.5px; }
   .deadline { color: #475569; font-size: 11.5px; white-space: nowrap; }
@@ -335,7 +338,7 @@
         <th style="width:60px">유형</th>
         <th style="width:60px; text-align:center">규모</th>
         <th style="width:220px">프로젝트</th>
-        <th style="width:140px">기획담당자</th>
+        <th style="width:100px">기획담당자</th>
         <th style="width:72px; text-align:center">우선순위</th>
         <th style="width:80px">데드라인</th>
         <th style="width:110px">기간</th>
@@ -572,9 +575,10 @@
     // 4. 프로젝트 (긴 이름은 ellipsis + title 툴팁)
     const nameTd = td(`<span class="row-name${t.sub ? ' sub' : ''}" title="${t.name.replace(/"/g, '&quot;')}">${t.name}</span>`, 'cell');
     tr.appendChild(nameTd);
-    // 5. 기획담당자
+    // 5. 기획담당자 (긴 이름은 ellipsis + 툴팁)
     const ownerEmpty = !t.owner || t.owner === '-' || t.owner === '미정';
-    tr.appendChild(td(`<span class="owner${ownerEmpty ? ' empty' : ''}">${t.owner || '-'}</span>`, 'cell'));
+    const ownerText = t.owner || '-';
+    tr.appendChild(td(`<span class="owner${ownerEmpty ? ' empty' : ''}" title="${ownerText.replace(/"/g, '&quot;')}">${ownerText}</span>`, 'cell'));
     // 6. 우선순위
     const prioTd = td(`<span class="prio prio-${t.priority}">${t.priority}</span>`, 'cell');
     prioTd.style.textAlign = 'center';
