@@ -124,9 +124,11 @@
   .type { color: #64748b; font-size: 11.5px; }
   .deadline { color: #475569; font-size: 11.5px; white-space: nowrap; }
   .deadline.strike { text-decoration: line-through; color: #94a3b8; }
-  .period { font-family: ui-monospace, 'Menlo', 'Consolas', monospace; font-size: 11.5px; color: #1e40af; font-weight: 700; white-space: nowrap; background: #eff6ff; padding: 2px 6px; border-radius: 4px; display: inline-block; }
-  .period.empty { color: #cbd5e1; background: transparent; font-weight: 400; padding: 0; }
-  .mm-tag { display: inline-block; margin-left: 4px; padding: 1px 6px; background: #fef9c3; color: #854d0e; border-radius: 4px; font-size: 10.5px; font-weight: 800; font-family: inherit; vertical-align: middle; }
+  .period { font-family: ui-monospace, 'Menlo', 'Consolas', monospace; font-size: 11.5px; color: #334155; font-weight: 600; white-space: nowrap; }
+  .period.empty { color: #cbd5e1; font-weight: 400; }
+  .mm-cell { text-align: center; }
+  .mm-tag { display: inline-block; padding: 2px 8px; background: #fef3c7; color: #854d0e; border-radius: 5px; font-size: 11px; font-weight: 800; font-family: ui-monospace, 'Menlo', 'Consolas', monospace; white-space: nowrap; }
+  .mm-tag.empty { background: transparent; color: #cbd5e1; font-weight: 400; padding: 0; }
   .note { color: #64748b; font-size: 11px; font-style: italic; }
 
   /* Gantt timeline cell */
@@ -260,12 +262,12 @@
 
 <div class="filter-bar">
   <div class="filter-group">
-    <span class="filter-label">공수</span>
+    <span class="filter-label">규모</span>
     <select class="filter-select" id="filterEffort">
       <option value="all">전체</option>
-      <option value="대">대 (3개월+)</option>
-      <option value="중">중 (1-3개월)</option>
-      <option value="소">소 (1개월 미만)</option>
+      <option value="대">대 (3MM+)</option>
+      <option value="중">중 (1~3MM)</option>
+      <option value="소">소 (1MM 미만)</option>
     </select>
   </div>
   <div class="filter-group">
@@ -330,12 +332,14 @@
     <thead>
       <tr id="theadRow">
         <th style="width:60px">구분</th>
+        <th style="width:60px">유형</th>
+        <th style="width:60px; text-align:center">규모</th>
         <th style="width:280px">프로젝트</th>
         <th style="width:140px">기획담당자</th>
-        <th style="width:60px">유형</th>
         <th style="width:72px; text-align:center">우선순위</th>
-        <th style="width:100px">데드라인</th>
-        <th style="width:120px">기간</th>
+        <th style="width:80px">데드라인</th>
+        <th style="width:110px">기간</th>
+        <th style="width:78px; text-align:center">공수</th>
         <th style="width:80px">상태</th>
         <!-- 월 헤더는 JS로 동적 생성 -->
       </tr>
@@ -390,11 +394,11 @@
     { cat:'공통', name:'리브랜딩 모바일 (1차)', owner:'심해란, 김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', bars:[{from:0, to:5, label:'QA'}], note:'' },
     { cat:'공통', name:'ㄴ 검색개선', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', sub:true, bars:[{from:0, to:5, label:'QA'}], note:'' },
     { cat:'공통', name:'ㄴ 검색개선 (AI 미니프로젝트)', owner:'김지혜', type:'플랫폼', priority:'하', deadline:'-', status:'QA', sub:true, bars:[], note:'' },
-    { cat:'공통', name:'리브랜딩 모바일 (3차) 잔여이슈', owner:'김지혜', effort:'소', type:'플랫폼', priority:'상', deadline:'08.26', period:'08.06~08.26', status:'기획', bars:[], planBars:[{from:8, to:8.75}], note:'스마트티켓 외 잔여이슈' },
-    { cat:'공통', name:'리브랜딩 PC (2차)', owner:'김지혜', effort:'중', type:'플랫폼', priority:'상', deadline:'07.24', period:'06.15~07.24', status:'기획', bars:[], planBars:[{from:6.5, to:7.75}], note:'06.15~07.24' },
+    { cat:'공통', name:'리브랜딩 모바일 (3차) 잔여이슈', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'08.26', period:'08.06~08.26', status:'기획', bars:[], planBars:[{from:8, to:8.75}], note:'스마트티켓 외 잔여이슈' },
+    { cat:'공통', name:'리브랜딩 PC (2차)', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'07.24', period:'06.15~07.24', status:'기획', bars:[], planBars:[{from:6.5, to:7.75}], note:'06.15~07.24' },
     { cat:'공통', name:'에치금 (PAYCO)', owner:'엄재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'기획', bars:[{from:0, to:5, label:''}], note:'' },
     { cat:'공통', name:'조계중', owner:'임은혜', type:'구축', priority:'중', deadline:'미정', status:'검토', bars:[], note:'' },
-    { cat:'공통', name:'KREAM 연동 판매 관리 (연간)', effort:'소', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'런타스'}], note:'' },
+    { cat:'공통', name:'KREAM 연동 판매 관리 (연간)', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'런타스'}], note:'' },
     { cat:'공통', name:'기획전 투표기능 추가', owner:'임은혜', type:'플랫폼', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
     { cat:'공통', name:'인디패스 (AI 미니프로젝트)', owner:'정원경', type:'구축', priority:'하', deadline:'미정', status:'대기', bars:[], note:'일정 미정' },
     { cat:'공통', name:'좌석 추첨 기능 개발', owner:'정원경', type:'플랫폼', priority:'중', deadline:'미정', status:'검토', bars:[], note:'멜론·인터파크 어워즈 활용 / 변우석 7월 공연은 추첨 없이 진행 결정' },
@@ -404,7 +408,7 @@
 
     // [공연장]
     { cat:'공연장', name:'티켓링크 1975 씨어터 홈페이지 구축', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
-    { cat:'공연장', name:'연세대학교 유지보수', effort:'소', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
+    { cat:'공연장', name:'연세대학교 유지보수', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
 
     // [공연]
     { cat:'공연', name:'사릇데시어터 글로벌 회원예매', owner:'임은혜', type:'연동', priority:'중', deadline:'1/14, 5/6', status:'QA', bars:[{from:0, to:0, label:'QA'}, {from:1, to:1, label:'1/14'}, {from:5, to:5, label:'QA'}], note:'' },
@@ -426,7 +430,7 @@
 
     // [스포츠]
     { cat:'스포츠', name:'다카르 청소년 올림픽 (글로벌 시설, 서비 이전)', owner:'정원경, 임은혜', type:'구축', priority:'상', deadline:'26년 5월', status:'개발', bars:[{from:5, to:5, label:'QA'}, {from:6, to:6, label:'매뉴오스'}, {from:9, to:9, label:'1월'}, {from:10, to:10, label:'3\'1현장'}], note:'' },
-    { cat:'스포츠', name:'26시즌 쿠팡 시리즈 (연간)', effort:'소', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'축구'}], note:'' },
+    { cat:'스포츠', name:'26시즌 쿠팡 시리즈 (연간)', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'축구'}], note:'' },
     { cat:'스포츠', name:'경남도민프로축구단 연동', owner:'엄재홍', type:'연동', priority:'하', deadline:'26년 5월', status:'기획', bars:[{from:6, to:6, label:'포인트'}], note:'' },
     { cat:'스포츠', name:'부가상품 개선/고도화', owner:'현예원', type:'플랫폼', priority:'상', deadline:'6월', status:'개발', bars:[{from:8, to:8, label:'배포'}, {from:9, to:9, label:'사용'}], note:'' },
     { cat:'스포츠', name:'네이버스포츠 연동', owner:'엄재홍', type:'연동', priority:'중', deadline:'-', status:'기획', bars:[], note:'' },
@@ -489,11 +493,11 @@
 
   // 정렬 가능한 컬럼: 헤더 인덱스(0-based) 매핑
   const SORT_COLS = [
-    { col: 'name',     idx: 1, label: '프로젝트' },
-    { col: 'owner',    idx: 2, label: '기획담당자' },
-    { col: 'type',     idx: 3, label: '유형' },
-    { col: 'priority', idx: 4, label: '우선순위' },
-    { col: 'status',   idx: 7, label: '상태' },
+    { col: 'type',     idx: 1, label: '유형' },
+    { col: 'name',     idx: 3, label: '프로젝트' },
+    { col: 'owner',    idx: 4, label: '기획담당자' },
+    { col: 'priority', idx: 5, label: '우선순위' },
+    { col: 'status',   idx: 9, label: '상태' },
   ];
 
   function getSortValue(t, col) {
@@ -536,37 +540,51 @@
     return Number(mm.toFixed(2)).toString();
   }
 
+  // 규모(대/중/소) = 공수(MM) 기준 자동 계산
+  // 대: 3MM+ / 중: 1~3MM / 소: 0~1MM 미만 / null: 데이터 없음
+  function calcScale(mm) {
+    if (mm == null || mm <= 0) return null;
+    if (mm >= 3) return '대';
+    if (mm >= 1) return '중';
+    return '소';
+  }
+
   // ── 행 생성 ────────────────────────────────────────────────
   function createRow(t) {
-    const effort = t.effort || '';
+    const mm = calcMM(t);
+    const scale = calcScale(mm); // 공수(MM) 기준 자동 계산
     const tr = document.createElement('tr');
     tr.dataset.cat = t.cat;
     tr.dataset.prio = t.priority;
     tr.dataset.type = t.type;
     tr.dataset.status = t.status;
     tr.dataset.owner = t.owner || '';
-    tr.dataset.effort = effort;
+    tr.dataset.effort = scale || '';
 
+    // 1. 구분
     tr.appendChild(td(`<span class="cat-badge cat-${t.cat}">${t.cat}</span>`, 'cell'));
-
-    // 프로젝트명 + 공수 뱃지
-    const effortBadge = effort ? `<span class="effort-badge effort-${effort}">${effort}</span>` : '';
-    const nameTd = td(`${effortBadge}<span class="row-name${t.sub ? ' sub' : ''}">${t.name}</span>`, 'cell');
-    tr.appendChild(nameTd);
+    // 2. 유형
+    tr.appendChild(td(`<span class="type">${t.type}</span>`, 'cell'));
+    // 3. 규모 (자동 계산)
+    const scaleTd = td(scale ? `<span class="effort-badge effort-${scale}">${scale}</span>` : `<span class="period empty">-</span>`, 'cell');
+    scaleTd.style.textAlign = 'center';
+    tr.appendChild(scaleTd);
+    // 4. 프로젝트
+    tr.appendChild(td(`<span class="row-name${t.sub ? ' sub' : ''}">${t.name}</span>`, 'cell'));
+    // 5. 기획담당자
     const ownerEmpty = !t.owner || t.owner === '-' || t.owner === '미정';
     tr.appendChild(td(`<span class="owner${ownerEmpty ? ' empty' : ''}">${t.owner || '-'}</span>`, 'cell'));
-    tr.appendChild(td(`<span class="type">${t.type}</span>`, 'cell'));
+    // 6. 우선순위
     const prioTd = td(`<span class="prio prio-${t.priority}">${t.priority}</span>`, 'cell');
     prioTd.style.textAlign = 'center';
     tr.appendChild(prioTd);
+    // 7. 데드라인
     tr.appendChild(td(`<span class="deadline${t.deadlineStrike ? ' strike' : ''}">${t.deadline}</span>`, 'cell'));
-    // 기간 + 맨먼스(MM)
-    const mm = calcMM(t);
-    const periodPart = t.period
-      ? `<span class="period">${t.period}</span>`
-      : `<span class="period empty">-</span>`;
-    const mmPart = mm != null ? `<span class="mm-tag">${formatMM(mm)} MM</span>` : '';
-    tr.appendChild(td(periodPart + mmPart, 'cell'));
+    // 8. 기간 (bg 컬러 제거됨)
+    tr.appendChild(td(t.period ? `<span class="period">${t.period}</span>` : `<span class="period empty">-</span>`, 'cell'));
+    // 9. 공수 (MM, 자동 계산)
+    tr.appendChild(td(mm != null ? `<span class="mm-tag">${formatMM(mm)} MM</span>` : `<span class="mm-tag empty">-</span>`, 'cell mm-cell'));
+    // 10. 상태
     tr.appendChild(td(`<span class="status status-${t.status}">${t.status}</span>`, 'cell'));
 
     // 타임라인 (colspan)
@@ -769,7 +787,7 @@
   // ── 요약 (총건수 + 구분/담당자/유형/상태) ─────────────────
   function getVisibleTasks() {
     return tasks.filter(t => {
-      if (activeEffort !== 'all' && (t.effort || '') !== activeEffort) return false;
+      if (activeEffort !== 'all' && (calcScale(calcMM(t)) || '') !== activeEffort) return false;
       if (activeCat    !== 'all' && t.cat      !== activeCat)    return false;
       if (activePrio   !== 'all' && t.priority !== activePrio)   return false;
       if (activeType   !== 'all' && t.type     !== activeType)   return false;
@@ -810,13 +828,13 @@
     const byOwner  = countByOwner(visible);
     const byType   = countBy(visible, t => t.type);
     const byStatus = countBy(visible, t => t.status);
-    const byEffort = countBy(visible, t => t.effort || '미지정');
+    const byEffort = countBy(visible, t => calcScale(calcMM(t)) || '미지정');
 
     const typeOrder   = ['플랫폼', '연동', '구축'];
     const statusOrder = ['기획', '개발', '디자인', 'QA', '배포대기', '검토', '대기', '배포완료'];
 
     const filterParts = [];
-    if (activeEffort !== 'all') filterParts.push(`공수: ${activeEffort}`);
+    if (activeEffort !== 'all') filterParts.push(`규모: ${activeEffort}`);
     if (activeCat    !== 'all') filterParts.push(`구분: ${activeCat}`);
     if (activeOwner  !== 'all') filterParts.push(`담당자: ${activeOwner}`);
     if (activeType   !== 'all') filterParts.push(`유형: ${activeType}`);
@@ -845,7 +863,7 @@
         ).join('')}
       </div>
       <div class="summary-row">
-        <span class="summary-row-label">공수별</span>
+        <span class="summary-row-label">규모별</span>
         ${['대','중','소','미지정'].filter(e => byEffort[e]).map(e =>
           `<span class="summary-pill"><span class="effort-badge effort-${e === '미지정' ? '' : e}" style="${e === '미지정' ? 'background:#f1f5f9;color:#64748b' : ''}">${e}</span><span class="summary-num">${byEffort[e]}</span></span>`
         ).join('')}
@@ -887,7 +905,7 @@
         s.cats[t.cat]      = (s.cats[t.cat]      || 0) + 1;
         s.types[t.type]    = (s.types[t.type]    || 0) + 1;
         s.statuses[t.status] = (s.statuses[t.status] || 0) + 1;
-        const eff = t.effort || '미지정';
+        const eff = calcScale(calcMM(t)) || '미지정';
         s.efforts[eff]    = (s.efforts[eff]    || 0) + 1;
         s.projects.push(t.name);
       });
