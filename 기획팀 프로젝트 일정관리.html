@@ -399,7 +399,7 @@
     { cat:'공통', name:'ㄴ 검색개선 (AI 미니프로젝트)', owner:'김지혜', type:'플랫폼', priority:'하', deadline:'-', status:'QA', sub:true, bars:[], note:'' },
     { cat:'공통', name:'리브랜딩 모바일 (3차) 잔여이슈', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'08.26', period:'08.06~08.26', status:'기획', bars:[], planBars:[{from:8, to:8.75}], note:'스마트티켓 외 잔여이슈' },
     { cat:'공통', name:'리브랜딩 PC (2차)', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'07.24', period:'06.15~07.24', status:'기획', bars:[], planBars:[{from:6.5, to:7.75}], note:'06.15~07.24' },
-    { cat:'공통', name:'에치금 (PAYCO)', owner:'엄재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'기획', bars:[{from:0, to:5, label:''}], note:'' },
+    { cat:'공통', name:'결제선점 (PAYCO)', owner:'엄재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'기획', bars:[{from:0, to:5, label:''}], note:'' },
     { cat:'공통', name:'조계중', owner:'임은혜', type:'구축', priority:'중', deadline:'미정', status:'검토', bars:[], note:'' },
     { cat:'공통', name:'KREAM 연동 판매 관리 (연간)', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'런타스'}], note:'' },
     { cat:'공통', name:'기획전 투표기능 추가', owner:'임은혜', type:'플랫폼', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
@@ -408,6 +408,7 @@
     { cat:'공통', name:'토스 얼굴패스 입장 연동', owner:'엄재홍', type:'연동', priority:'상', deadline:'26년 10월', status:'기획', bars:[{from:5, to:9, label:'10월 前 완료'}], note:'킨텍스 게임행사(3.2만명) / 핸드볼 하이브계열 / 10월 前 호요랜드 수급 조건' },
     { cat:'공통', name:'한국경제 멤버십 연동', owner:'엄재홍', type:'연동', priority:'중', deadline:'26년 7월', status:'기획', bars:[{from:6, to:7, label:'7월 1주'}], note:'중앙일보와 동일 방식 (예매 연동)' },
     { cat:'공통', name:'한국교직원공제회 기능 개발', owner:'엄재홍', type:'연동', priority:'하', deadline:'26년 9월', status:'기획', bars:[{from:7, to:9, label:'조성진'}], note:'조성진 공연 / 2천만원 초과시 별도계약 / 연 5천만원 / 중앙일보 동일 방식' },
+    { cat:'공통', name:'통계 시스템 구축', owner:'임은혜', type:'구축', priority:'중', deadline:'미정', status:'대기', bars:[], note:'' },
 
     // [공연장]
     { cat:'공연장', name:'티켓링크 1975 씨어터 홈페이지 구축', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
@@ -485,7 +486,10 @@
   // ── 정렬 상태 & 정렬 순서 정의 ─────────────────────────────
   // 복합 정렬: 클릭 순서대로 sortStack에 쌓이며, 앞쪽이 더 높은 우선순위
   // 예) [{col:'name', dir:'asc'}, {col:'owner', dir:'asc'}] = 프로젝트 → 담당자 순
-  let sortStack = [{ col: 'status', dir: 'asc' }]; // 기본 = 상태순
+  let sortStack = [
+    { col: 'periodStart', dir: 'asc' }, // 1차: 기간 시작 빠른 순
+    { col: 'name',        dir: 'asc' }, // 2차: 프로젝트명 가나다순
+  ];
   let activeCat = 'all', activePrio = 'all', activeOwner = 'all', activeType = 'all', activeStatus = 'all', activeEffort = 'all';
 
   const PRIO_ORDER   = { '상': 0, '중': 1, '하': 2 };
@@ -496,11 +500,12 @@
 
   // 정렬 가능한 컬럼: 헤더 인덱스(0-based) 매핑
   const SORT_COLS = [
-    { col: 'type',     idx: 1, label: '유형' },
-    { col: 'name',     idx: 3, label: '프로젝트' },
-    { col: 'owner',    idx: 4, label: '기획담당자' },
-    { col: 'priority', idx: 5, label: '우선순위' },
-    { col: 'status',   idx: 9, label: '상태' },
+    { col: 'type',        idx: 1, label: '유형' },
+    { col: 'name',        idx: 3, label: '프로젝트' },
+    { col: 'owner',       idx: 4, label: '기획담당자' },
+    { col: 'priority',    idx: 5, label: '우선순위' },
+    { col: 'periodStart', idx: 7, label: '기간' },
+    { col: 'status',      idx: 9, label: '상태' },
   ];
 
   function getSortValue(t, col) {
@@ -513,6 +518,12 @@
     }
     if (col === 'name') {
       return (t.name || '').replace(/^ㄴ\s*/, '');
+    }
+    if (col === 'periodStart') {
+      // 기간 시작 = planBars/qaBars/releaseBars 중 가장 빠른 from. 없으면 99(맨 뒤)
+      const allBars = [...(t.planBars||[]), ...(t.qaBars||[]), ...(t.releaseBars||[])];
+      if (!allBars.length) return 99;
+      return Math.min(...allBars.map(b => b.from));
     }
     return 0;
   }
