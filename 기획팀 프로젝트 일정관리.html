@@ -13,20 +13,48 @@
   h1 { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px; }
   .meta { font-size: 13px; color: #64748b; }
 
-  .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-  .filter-btn { padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: 20px; border: 1.5px solid #e2e8f0; background: white; color: #475569; cursor: pointer; transition: all 0.15s; }
-  .filter-btn:hover { border-color: #cbd5e1; }
-  .filter-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
-  .filter-divider { width: 1px; height: 18px; background: #e2e8f0; margin: 0 4px; }
-  .legend { display: flex; gap: 12px; font-size: 11px; color: #64748b; margin-left: auto; align-items: center; }
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  .filter-label { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.3px; white-space: nowrap; }
+  .filter-select {
+    padding: 6px 28px 6px 12px;
+    font-size: 13px; font-weight: 500; color: #334155;
+    background-color: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    font-family: inherit;
+    transition: all 0.15s;
+    min-width: 100px;
+  }
+  .filter-select:hover { border-color: #cbd5e1; background-color: #f8fafc; }
+  .filter-select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+  .filter-select.active { border-color: #2563eb; background-color: #eff6ff; color: #1d4ed8; font-weight: 700; }
+  .filter-reset { padding: 6px 12px; font-size: 12px; font-weight: 600; color: #475569; background: white; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+  .filter-reset:hover { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+  .filter-reset.has-active { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+  .filter-reset.has-active:hover { background: #fee2e2; border-color: #fca5a5; }
+  .legend { display: flex; gap: 12px; font-size: 11px; color: #64748b; margin-left: auto; align-items: center; flex-wrap: wrap; }
   .legend-item { display: flex; align-items: center; gap: 4px; }
   .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-divider { width: 1px; height: 14px; background: #e2e8f0; }
+  .phase-key { display: inline-block; width: 16px; height: 8px; border-radius: 2px; vertical-align: middle; }
+  .phase-key.plan    { background: linear-gradient(135deg, #fb923c, #ea580c); border: 1px dashed rgba(255,255,255,0.65); }
+  .phase-key.qa      { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+  .phase-key.release { background: linear-gradient(135deg, #34d399, #059669); width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.7); }
 
-  .gantt { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-  .gantt-table { border-collapse: collapse; width: max-content; min-width: 100%; }
-  .gantt-table thead { position: sticky; top: 0; z-index: 5; }
-  .gantt-table th { background: #f8fafc; font-size: 12px; font-weight: 700; color: #475569; padding: 10px 8px; border-bottom: 2px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
-  .gantt-table th.month-h { text-align: center; min-width: 70px; }
+  .gantt { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; max-height: calc(100vh - 220px); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .gantt-table { border-collapse: separate; border-spacing: 0; table-layout: fixed; width: max-content; }
+  .gantt-table thead th { position: sticky; top: 0; z-index: 5; }
+  .gantt-table th { background: #f8fafc; font-size: 12px; font-weight: 700; color: #475569; padding: 10px 8px; border-bottom: 2px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gantt-table th.month-h { text-align: center; width: 72px; padding: 6px 0 0; vertical-align: top; }
+  .gantt-table th.month-h .month-name { font-size: 12px; font-weight: 700; color: #0f172a; display: block; }
+  .gantt-table th.month-h .week-marks { display: grid; grid-template-columns: repeat(4, 1fr); width: 72px; margin: 4px 0 4px -1px; font-size: 8.5px; color: #94a3b8; font-weight: 600; }
+  .gantt-table th.month-h .week-marks span { text-align: center; display: block; }
   .gantt-table td { padding: 0; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; font-size: 12.5px; vertical-align: middle; }
   .gantt-table td.cell { padding: 8px 8px; }
   .gantt-table tbody tr:hover { background: #f8fafc; }
@@ -48,6 +76,7 @@
   /* Status badge */
   .status { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
   .status-배포대기 { background: #fbcfe8; color: #9d174d; }
+  .status-배포완료 { background: #d1fae5; color: #047857; }
   .status-기획 { background: #fed7aa; color: #9a3412; }
   .status-QA { background: #bfdbfe; color: #1e40af; }
   .status-검토 { background: #bbf7d0; color: #166534; }
@@ -55,23 +84,79 @@
   .status-디자인 { background: #ddd6fe; color: #5b21b6; }
   .status-개발 { background: #fef08a; color: #854d0e; }
 
-  .row-name { font-weight: 600; color: #0f172a; }
+  .row-name { font-weight: 600; color: #0f172a; display: inline-block; }
   .row-name.sub { color: #475569; font-weight: 500; padding-left: 12px; }
+  .effort-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9.5px; font-weight: 800; margin-right: 5px; letter-spacing: 0.3px; vertical-align: middle; }
+  .effort-대 { background: #fee2e2; color: #b91c1c; }
+  .effort-중 { background: #fef3c7; color: #b45309; }
+  .effort-소 { background: #d1fae5; color: #047857; }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: white; border-radius: 14px; padding: 22px 24px; min-width: 520px; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: modalIn 0.2s ease-out; }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(-12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 16px; gap: 10px; }
+  .modal-title { font-size: 17px; font-weight: 800; color: #0f172a; flex: 1; line-height: 1.4; word-break: keep-all; }
+  .modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; padding: 4px 10px; border-radius: 6px; line-height: 1; }
+  .modal-close:hover { background: #f1f5f9; color: #0f172a; }
+  .modal-meta { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field-label { font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 5px; letter-spacing: 0.3px; }
+  .modal-field-value { font-size: 13px; color: #334155; padding: 6px 10px; background: #f8fafc; border-radius: 6px; min-height: 30px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-input, .modal-select, .modal-textarea { width: 100%; padding: 8px 12px; font-size: 13px; color: #334155; background: white; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: inherit; transition: border-color 0.15s; }
+  .modal-input:focus, .modal-select:focus, .modal-textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .modal-textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
+  .modal-row-2 { display: flex; align-items: center; gap: 8px; }
+  .modal-date-row { display: flex; gap: 5px; }
+  .modal-date-row .modal-select { flex: 1 1 auto; min-width: 0; }
+  .modal-date-row .modal-week-select { flex: 0 0 68px; padding-right: 24px; font-weight: 700; color: #1e40af; }
+  .modal-section-title { font-size: 12px; font-weight: 800; color: #1e293b; margin: 18px 0 8px; padding-top: 12px; border-top: 1px solid #f1f5f9; letter-spacing: 0.2px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+  .modal-btn { padding: 8px 18px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; border: 1.5px solid; transition: all 0.15s; font-family: inherit; }
+  .modal-btn-primary { background: #2563eb; color: white; border-color: #2563eb; }
+  .modal-btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+  .modal-btn-secondary { background: white; color: #475569; border-color: #e2e8f0; }
+  .modal-btn-secondary:hover { background: #f1f5f9; }
   .owner { color: #475569; }
   .owner.empty { color: #cbd5e1; }
   .type { color: #64748b; font-size: 11.5px; }
   .deadline { color: #475569; font-size: 11.5px; white-space: nowrap; }
   .deadline.strike { text-decoration: line-through; color: #94a3b8; }
+  .period { font-family: ui-monospace, 'Menlo', 'Consolas', monospace; font-size: 11.5px; color: #1e40af; font-weight: 700; white-space: nowrap; background: #eff6ff; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+  .period.empty { color: #cbd5e1; background: transparent; font-weight: 400; padding: 0; }
   .note { color: #64748b; font-size: 11px; font-style: italic; }
 
   /* Gantt timeline cell */
-  .timeline-row { position: relative; height: 36px; }
-  .month-cell { width: 70px; min-width: 70px; height: 36px; border-right: 1px solid #f1f5f9; position: relative; }
-  .month-cell.q-end { border-right: 1px solid #e2e8f0; }
+  .timeline-row { position: relative; height: 64px; }
+  .month-cell { width: 72px; min-width: 72px; height: 64px; border-right: 1px solid #e2e8f0; position: relative;
+    background-image:
+      linear-gradient(to right, transparent 0, transparent 17px, rgba(226,232,240,0.6) 17px, rgba(226,232,240,0.6) 18px, transparent 18px, transparent 35px, rgba(226,232,240,0.6) 35px, rgba(226,232,240,0.6) 36px, transparent 36px, transparent 53px, rgba(226,232,240,0.6) 53px, rgba(226,232,240,0.6) 54px, transparent 54px);
+  }
+  .month-cell.q-end { border-right: 1px solid #cbd5e1; }
   .month-cell.year-divider { border-right: 2px solid #cbd5e1; }
-  .month-cell.current { background: #fef9c3; }
+  .month-cell.current { background-color: rgba(254,249,195,0.55); }
 
-  .gantt-bar { position: absolute; top: 6px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; color: white; padding: 0 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); overflow: hidden; white-space: nowrap; }
+  .gantt-bar { position: absolute; top: 22px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; color: white; padding: 0 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); overflow: hidden; white-space: nowrap; }
+  .phase-bar { position: absolute; height: 14px; border-radius: 4px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .phase-plan    { top: 6px; }
+  .phase-plan.has-status { border: 1px dashed rgba(255,255,255,0.55); opacity: 0.92; }
+  .phase-qa      { top: 25px; }
+  .phase-release { top: 44px; width: 6px !important; border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 1px 3px rgba(0,0,0,0.15); }
+  .phase-release::after { content: ''; position: absolute; top: -3px; left: -2px; width: 10px; height: 10px; border-radius: 50%; background: inherit; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .phase-bar:hover { opacity: 0.85; transform: translateY(-1px); transition: all 0.1s; }
+
+  /* 막대 배경 = 상태 컬러 (그라데이션) */
+  .bar-status-기획     { background: linear-gradient(135deg, #fb923c, #ea580c); }
+  .bar-status-개발     { background: linear-gradient(135deg, #facc15, #ca8a04); color: #422006; }
+  .bar-status-디자인   { background: linear-gradient(135deg, #a78bfa, #7c3aed); }
+  .bar-status-QA       { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+  .bar-status-배포대기 { background: linear-gradient(135deg, #f472b6, #db2777); }
+  .bar-status-배포완료 { background: linear-gradient(135deg, #34d399, #059669); }
+  .bar-status-검토     { background: linear-gradient(135deg, #5eead4, #0d9488); }
+  .bar-status-대기     { background: linear-gradient(135deg, #cbd5e1, #64748b); }
+  .phase-plan.has-status { border: 1px dashed rgba(255,255,255,0.6); opacity: 0.92; }
   .bar-공통 { background: linear-gradient(135deg, #ec4899, #db2777); }
   .bar-공연장 { background: linear-gradient(135deg, #84cc16, #65a30d); }
   .bar-공연 { background: linear-gradient(135deg, #f59e0b, #d97706); }
@@ -79,11 +164,88 @@
   .bar-스포츠 { background: linear-gradient(135deg, #06b6d4, #0891b2); }
   .bar-faded { opacity: 0.55; }
 
-  .summary-bar { display: flex; gap: 12px; margin-top: 14px; padding: 12px 16px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 12.5px; flex-wrap: wrap; }
-  .summary-item { display: flex; align-items: center; gap: 6px; }
-  .summary-num { font-size: 16px; font-weight: 800; color: #0f172a; }
-  .summary-label { color: #64748b; }
-  .summary-divider { width: 1px; background: #e2e8f0; }
+  /* Editable cells (dropdown) */
+  td.editable-cell { position: relative; cursor: pointer; transition: background 0.15s; }
+  td.editable-cell:hover { background: #eff6ff; }
+  td.editable-cell .cell-select {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0; cursor: pointer;
+    border: none; padding: 0; margin: 0;
+    font: inherit;
+    background: transparent;
+  }
+  td.editable-cell .edit-caret {
+    position: absolute; right: 3px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 9px; color: #94a3b8;
+    opacity: 0; transition: opacity 0.15s;
+    pointer-events: none;
+  }
+  td.editable-cell:hover .edit-caret { opacity: 1; }
+
+  .reset-button { padding: 5px 12px; font-size: 12px; font-weight: 600; color: #dc2626; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 6px; cursor: pointer; transition: all 0.15s; margin-left: auto; }
+  .reset-button:hover { background: #fee2e2; border-color: #fca5a5; }
+  .save-indicator { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #16a34a; opacity: 0; transition: opacity 0.3s; padding: 0 6px; font-weight: 600; }
+  .save-indicator.show { opacity: 1; }
+
+  /* Sortable headers */
+  th.sortable { cursor: pointer; user-select: none; transition: background 0.15s; }
+  th.sortable:hover { background: #e2e8f0; }
+  .sort-indicator { color: #cbd5e1; font-size: 10px; margin-left: 3px; display: inline-block; transition: color 0.15s; }
+  .sort-indicator.active { color: #2563eb; }
+  .sort-rank { font-size: 8px; font-weight: 800; color: #2563eb; margin-left: 1px; vertical-align: super; }
+  th.sortable.sorted { background: #eff6ff; color: #1e40af; }
+
+  /* Summary */
+  .summary-bar { margin-top: 14px; padding: 14px 18px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .summary-total { display: flex; align-items: baseline; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
+  .summary-total .summary-num { font-size: 22px; font-weight: 800; color: #0f172a; }
+  .summary-total .summary-label { font-size: 13px; color: #64748b; }
+  .summary-total .filter-hint { font-size: 11px; color: #94a3b8; margin-left: 8px; }
+  .summary-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 26px; }
+  .summary-row-label { font-weight: 700; color: #475569; font-size: 11px; min-width: 56px; letter-spacing: 0.3px; padding: 2px 0; }
+  .summary-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 11.5px; }
+  .summary-pill .summary-num { font-size: 12.5px; font-weight: 800; color: #0f172a; }
+  .summary-pill .pill-label { color: #475569; font-weight: 600; }
+
+  /* Owner detail section */
+  .owner-detail-section { margin-top: 14px; padding: 16px 18px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .owner-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .owner-detail-header h2 { font-size: 14px; font-weight: 800; color: #0f172a; letter-spacing: -0.2px; }
+  .owner-detail-header .sub { font-size: 11px; color: #94a3b8; margin-left: 6px; font-weight: 500; }
+  .owner-detail-toggle { padding: 5px 12px; font-size: 12px; font-weight: 600; color: #475569; background: #f1f5f9; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+  .owner-detail-toggle:hover { background: #e2e8f0; }
+  .owner-detail-section.collapsed .owner-detail-body { display: none; }
+  .owner-detail-table { width: 100%; border-collapse: collapse; }
+  .owner-detail-table thead th { text-align: left; font-size: 11px; font-weight: 700; color: #64748b; padding: 8px 10px; border-bottom: 2px solid #e2e8f0; background: #f8fafc; white-space: nowrap; }
+  .owner-detail-table thead th.col-count { width: 70px; text-align: center; }
+  .owner-detail-table thead th.col-owner { width: 110px; }
+  .owner-detail-table tbody td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; vertical-align: middle; }
+  .owner-detail-table tbody tr:hover { background: #f8fafc; }
+  .owner-detail-table tbody tr:last-child td { border-bottom: none; }
+  .owner-detail-table th.col-status { text-align: center; width: 60px; padding: 8px 6px; font-size: 10.5px; }
+  .owner-detail-table td.status-count { text-align: center; font-weight: 700; color: #0f172a; font-size: 13px; }
+  .owner-detail-table td.status-count.zero { color: #cbd5e1; font-weight: 500; }
+  .owner-detail-table th.status-divider, .owner-detail-table td.status-divider { border-left: 2px solid #e2e8f0; }
+  .owner-detail-table th.col-effort { text-align: center; width: 50px; padding: 8px 6px; font-size: 11px; font-weight: 800; }
+  .owner-detail-table th.col-effort.대 { color: #b91c1c; }
+  .owner-detail-table th.col-effort.중 { color: #b45309; }
+  .owner-detail-table th.col-effort.소 { color: #047857; }
+  .owner-detail-table td.effort-count { text-align: center; font-weight: 700; font-size: 13px; }
+  .owner-detail-table td.effort-count.zero { color: #cbd5e1; font-weight: 500; }
+  .owner-detail-table td.effort-count.대 { color: #b91c1c; }
+  .owner-detail-table td.effort-count.중 { color: #b45309; }
+  .owner-detail-table td.effort-count.소 { color: #047857; }
+  .owner-detail-table th.effort-divider, .owner-detail-table td.effort-divider { border-left: 2px solid #e2e8f0; }
+  .owner-name-cell { font-weight: 700; color: #0f172a; font-size: 13px; }
+  .owner-count-cell { text-align: center; }
+  .owner-count { display: inline-block; font-weight: 800; font-size: 15px; color: #2563eb; min-width: 26px; padding: 2px 8px; background: #eff6ff; border-radius: 12px; }
+  .detail-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .detail-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 11px; }
+  .detail-pill .pill-label-sm { color: #475569; font-weight: 600; }
+  .detail-pill .num { font-weight: 800; color: #0f172a; }
+  .empty-state { padding: 24px; text-align: center; color: #94a3b8; font-size: 12px; }
 
   tr.hidden { display: none; }
 </style>
@@ -96,23 +258,69 @@
 </div>
 
 <div class="filter-bar">
-  <button class="filter-btn active" data-cat="all">전체</button>
-  <button class="filter-btn" data-cat="공통">공통</button>
-  <button class="filter-btn" data-cat="공연장">공연장</button>
-  <button class="filter-btn" data-cat="공연">공연</button>
-  <button class="filter-btn" data-cat="전시">전시</button>
-  <button class="filter-btn" data-cat="스포츠">스포츠</button>
-  <div class="filter-divider"></div>
-  <button class="filter-btn" data-prio="all">우선순위 전체</button>
-  <button class="filter-btn" data-prio="상">상</button>
-  <button class="filter-btn" data-prio="중">중</button>
-  <button class="filter-btn" data-prio="하">하</button>
+  <div class="filter-group">
+    <span class="filter-label">공수</span>
+    <select class="filter-select" id="filterEffort">
+      <option value="all">전체</option>
+      <option value="대">대 (3개월+)</option>
+      <option value="중">중 (1-3개월)</option>
+      <option value="소">소 (1개월 미만)</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">구분</span>
+    <select class="filter-select" id="filterCat">
+      <option value="all">전체</option>
+      <option value="공통">공통</option>
+      <option value="공연장">공연장</option>
+      <option value="공연">공연</option>
+      <option value="전시">전시</option>
+      <option value="스포츠">스포츠</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">담당자</span>
+    <select class="filter-select" id="filterOwner">
+      <option value="all">전체</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">유형</span>
+    <select class="filter-select" id="filterType">
+      <option value="all">전체</option>
+      <option value="플랫폼">플랫폼</option>
+      <option value="연동">연동</option>
+      <option value="구축">구축</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">우선순위</span>
+    <select class="filter-select" id="filterPrio">
+      <option value="all">전체</option>
+      <option value="상">상</option>
+      <option value="중">중</option>
+      <option value="하">하</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">상태</span>
+    <select class="filter-select" id="filterStatus">
+      <option value="all">전체</option>
+      <option value="기획">기획</option>
+      <option value="개발">개발</option>
+      <option value="디자인">디자인</option>
+      <option value="QA">QA</option>
+      <option value="배포대기">배포대기</option>
+      <option value="배포완료">배포완료</option>
+      <option value="검토">검토</option>
+      <option value="대기">대기</option>
+    </select>
+  </div>
+  <button class="filter-reset" id="resetFilters">↺ 초기화</button>
   <div class="legend">
-    <div class="legend-item"><span class="legend-dot" style="background:#ec4899"></span>공통</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#84cc16"></span>공연장</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>공연</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#6366f1"></span>전시</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#06b6d4"></span>스포츠</div>
+    <div class="legend-item"><span class="phase-key plan"></span>기획</div>
+    <div class="legend-item"><span class="phase-key qa"></span>QA</div>
+    <div class="legend-item"><span class="phase-key release"></span>배포</div>
   </div>
 </div>
 
@@ -120,13 +328,14 @@
   <table class="gantt-table" id="ganttTable">
     <thead>
       <tr id="theadRow">
-        <th style="min-width:60px">구분</th>
-        <th style="min-width:280px">프로젝트</th>
-        <th style="min-width:140px">기획담당자</th>
-        <th style="min-width:60px">유형</th>
-        <th style="min-width:50px; text-align:center">우선순위</th>
-        <th style="min-width:90px">데드라인</th>
-        <th style="min-width:80px">상태</th>
+        <th style="width:60px">구분</th>
+        <th style="width:280px">프로젝트</th>
+        <th style="width:140px">기획담당자</th>
+        <th style="width:60px">유형</th>
+        <th style="width:72px; text-align:center">우선순위</th>
+        <th style="width:100px">데드라인</th>
+        <th style="width:120px">기간</th>
+        <th style="width:80px">상태</th>
         <!-- 월 헤더는 JS로 동적 생성 -->
       </tr>
     </thead>
@@ -135,6 +344,38 @@
 </div>
 
 <div class="summary-bar" id="summary"></div>
+
+<div class="owner-detail-section" id="ownerDetail">
+  <div class="owner-detail-header">
+    <div>
+      <h2>👥 담당자별 상세 통계<span class="sub">— 각 담당자가 가진 프로젝트의 구분 / 유형 / 상태 분포</span></h2>
+    </div>
+    <button class="owner-detail-toggle" id="ownerDetailToggle">접기</button>
+  </div>
+  <div class="owner-detail-body">
+    <table class="owner-detail-table">
+      <thead>
+        <tr>
+          <th class="col-owner">담당자</th>
+          <th class="col-count">건수</th>
+          <th class="col-effort 대 effort-divider">대</th>
+          <th class="col-effort 중">중</th>
+          <th class="col-effort 소">소</th>
+          <th class="col-status status-divider">기획</th>
+          <th class="col-status">개발</th>
+          <th class="col-status">디자인</th>
+          <th class="col-status">QA</th>
+          <th class="col-status">배포대기</th>
+          <th class="col-status">배포완료</th>
+          <th class="col-status">검토/대기</th>
+          <th class="status-divider">구분</th>
+          <th>유형</th>
+        </tr>
+      </thead>
+      <tbody id="ownerDetailTbody"></tbody>
+    </table>
+  </div>
+</div>
 
 <script>
   // 13개월: 2025-12 ~ 2026-12 (시트 헤더가 12, 1~12)
@@ -145,29 +386,32 @@
   // 데이터 (시트 원본 기준)
   const tasks = [
     // [공통]
-    { cat:'공통', name:'일본 1차', owner:'현예원, 정원경, 심해란', type:'플랫폼', priority:'상', deadline:'12/22, 2/2', deadlineStrike:true, status:'배포대기', bars:[{from:0, to:2, label:'2/2'}], note:'' },
-    { cat:'공통', name:'일본 2차 (티켓, MD, 켜담)', owner:'심해란, 박지은', type:'플랫폼', priority:'상', deadline:'미정', status:'기획', bars:[{from:0, to:3, label:'POC'}], note:'' },
     { cat:'공통', name:'리브랜딩 모바일 (1차)', owner:'심해란, 김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', bars:[{from:0, to:5, label:'QA'}], note:'' },
     { cat:'공통', name:'ㄴ 검색개선', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', sub:true, bars:[{from:0, to:5, label:'QA'}], note:'' },
     { cat:'공통', name:'ㄴ 검색개선 (AI 미니프로젝트)', owner:'김지혜', type:'플랫폼', priority:'하', deadline:'-', status:'QA', sub:true, bars:[], note:'' },
-    { cat:'공통', name:'리브랜딩 모바일 (2차) - 스마트티켓 외 잔여이슈', owner:'심해란, 김지혜', type:'플랫폼', priority:'상', deadline:'26년 9월', status:'기획', bars:[{from:5, to:9, label:'기획'}], note:'티켓 및 1차 제외항목' },
-    { cat:'공통', name:'리브랜딩 PC (3차)', owner:'정원경', type:'플랫폼', priority:'상', deadline:'미정', status:'기획', bars:[{from:5, to:12, label:''}], note:'PC' },
-    { cat:'공통', name:'에치금 (PAYCO)', owner:'염재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'기획', bars:[{from:0, to:5, label:''}], note:'' },
+    { cat:'공통', name:'리브랜딩 모바일 (3차) 잔여이슈', owner:'김지혜', effort:'소', type:'플랫폼', priority:'상', deadline:'08.26', period:'08.06~08.26', status:'기획', bars:[], planBars:[{from:8, to:8.75}], note:'스마트티켓 외 잔여이슈' },
+    { cat:'공통', name:'리브랜딩 PC (2차)', owner:'김지혜', effort:'중', type:'플랫폼', priority:'상', deadline:'07.24', period:'06.15~07.24', status:'기획', bars:[], planBars:[{from:6.5, to:7.75}], note:'06.15~07.24' },
+    { cat:'공통', name:'에치금 (PAYCO)', owner:'엄재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'기획', bars:[{from:0, to:5, label:''}], note:'' },
     { cat:'공통', name:'조계중', owner:'임은혜', type:'구축', priority:'중', deadline:'미정', status:'검토', bars:[], note:'' },
-    { cat:'공통', name:'KREAM 연동 판매 관리 (연간)', owner:'염재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'런타스'}], note:'' },
+    { cat:'공통', name:'KREAM 연동 판매 관리 (연간)', effort:'소', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'런타스'}], note:'' },
     { cat:'공통', name:'기획전 투표기능 추가', owner:'임은혜', type:'플랫폼', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
-    { cat:'공통', name:'인디패스 (AI 미니프로젝트)', owner:'미정', type:'구축', priority:'하', deadline:'-', status:'대기', bars:[], note:'' },
+    { cat:'공통', name:'인디패스 (AI 미니프로젝트)', owner:'정원경', type:'구축', priority:'하', deadline:'미정', status:'대기', bars:[], note:'일정 미정' },
+    { cat:'공통', name:'좌석 추첨 기능 개발', owner:'정원경', type:'플랫폼', priority:'중', deadline:'미정', status:'검토', bars:[], note:'멜론·인터파크 어워즈 활용 / 변우석 7월 공연은 추첨 없이 진행 결정' },
+    { cat:'공통', name:'토스 얼굴패스 입장 연동', owner:'엄재홍', type:'연동', priority:'상', deadline:'26년 10월', status:'기획', bars:[{from:5, to:9, label:'10월 前 완료'}], note:'킨텍스 게임행사(3.2만명) / 핸드볼 하이브계열 / 10월 前 호요랜드 수급 조건' },
+    { cat:'공통', name:'한국경제 멤버십 연동', owner:'엄재홍', type:'연동', priority:'중', deadline:'26년 7월', status:'기획', bars:[{from:6, to:7, label:'7월 1주'}], note:'중앙일보와 동일 방식 (예매 연동)' },
+    { cat:'공통', name:'한국교직원공제회 기능 개발', owner:'엄재홍', type:'연동', priority:'하', deadline:'26년 9월', status:'기획', bars:[{from:7, to:9, label:'조성진'}], note:'조성진 공연 / 2천만원 초과시 별도계약 / 연 5천만원 / 중앙일보 동일 방식' },
 
     // [공연장]
     { cat:'공연장', name:'티켓링크 1975 씨어터 홈페이지 구축', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
-    { cat:'공연장', name:'연세대학교 유지보수', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
+    { cat:'공연장', name:'연세대학교 유지보수', effort:'소', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
 
     // [공연]
     { cat:'공연', name:'사릇데시어터 글로벌 회원예매', owner:'임은혜', type:'연동', priority:'중', deadline:'1/14, 5/6', status:'QA', bars:[{from:0, to:0, label:'QA'}, {from:1, to:1, label:'1/14'}, {from:5, to:5, label:'QA'}], note:'' },
-    { cat:'공연', name:'위버스 팬클럽 회원 연동', owner:'현예원', type:'연동', priority:'상', deadline:'04/17', status:'배포대기', bars:[], note:'' },
+    { cat:'공연', name:'위버스 팬클럽 회원 연동', owner:'현예원', type:'연동', priority:'상', deadline:'04/17', status:'배포완료', bars:[], releaseBars:[{from:4.5, to:4.5, label:'4/17 완료'}], note:'배포 완료' },
     { cat:'공연', name:'GS칼텍스 예술마루', owner:'임은혜', type:'연동', priority:'하', deadline:'26년 3월', status:'배포대기', bars:[], note:'' },
-    { cat:'공연', name:'eKYC 인증 도입', owner:'현예원', type:'플랫폼', priority:'중', deadline:'26년 5월', status:'기획', bars:[], note:'' },
+    { cat:'공연', name:'eKYC 인증 도입', owner:'현예원', type:'플랫폼', priority:'중', deadline:'26년 5월', status:'기획', bars:[], planBars:[{from:3.93, to:5}], note:'검토 03.30~ / 기획 04.13~' },
     { cat:'공연', name:'키오스크 베리어프리 대응 (솔비포스)', owner:'임은혜', type:'연동', priority:'상', deadline:'26년 6월', status:'디자인', bars:[], note:'' },
+    { cat:'공연', name:'부스터랩 연동 (포토카드)', owner:'엄재홍', type:'연동', priority:'상', deadline:'6/25', status:'개발', bars:[{from:5, to:6, label:'6/25 완료'}], note:'7월 첫째 주 공연부터 시작 / 품목: 포토카드' },
 
     // [전시]
     { cat:'전시', name:'K현대미술관 시설 연동 (게이트, 모바일티켓 외)', owner:'현예원', type:'연동', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
@@ -181,11 +425,11 @@
 
     // [스포츠]
     { cat:'스포츠', name:'다카르 청소년 올림픽 (글로벌 시설, 서비 이전)', owner:'정원경, 임은혜', type:'구축', priority:'상', deadline:'26년 5월', status:'개발', bars:[{from:5, to:5, label:'QA'}, {from:6, to:6, label:'매뉴오스'}, {from:9, to:9, label:'1월'}, {from:10, to:10, label:'3\'1현장'}], note:'' },
-    { cat:'스포츠', name:'26시즌 쿠팡 시리즈 (연간)', owner:'염재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'축구'}], note:'' },
-    { cat:'스포츠', name:'경남도민프로축구단 연동', owner:'염재홍', type:'연동', priority:'하', deadline:'26년 5월', status:'기획', bars:[{from:6, to:6, label:'포인트'}], note:'' },
+    { cat:'스포츠', name:'26시즌 쿠팡 시리즈 (연간)', effort:'소', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'축구'}], note:'' },
+    { cat:'스포츠', name:'경남도민프로축구단 연동', owner:'엄재홍', type:'연동', priority:'하', deadline:'26년 5월', status:'기획', bars:[{from:6, to:6, label:'포인트'}], note:'' },
     { cat:'스포츠', name:'부가상품 개선/고도화', owner:'현예원', type:'플랫폼', priority:'상', deadline:'6월', status:'개발', bars:[{from:8, to:8, label:'배포'}, {from:9, to:9, label:'사용'}], note:'' },
-    { cat:'스포츠', name:'네이버스포츠 연동', owner:'염재홍', type:'연동', priority:'중', deadline:'-', status:'기획', bars:[], note:'' },
-    { cat:'스포츠', name:'종청 U 대회', owner:'염재홍', type:'플랫폼', priority:'상', deadline:'27년', status:'대기', bars:[], note:'' },
+    { cat:'스포츠', name:'네이버스포츠 연동', owner:'엄재홍', type:'연동', priority:'중', deadline:'-', status:'기획', bars:[], note:'' },
+    { cat:'스포츠', name:'종청 U 대회', owner:'엄재홍', type:'플랫폼', priority:'상', deadline:'27년', status:'대기', bars:[], note:'' },
     { cat:'스포츠', name:'KBL', owner:'미정', type:'연동', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
     { cat:'스포츠', name:'KOVO', owner:'미정', type:'연동', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
   ];
@@ -206,88 +450,151 @@
   document.getElementById('todayMeta').textContent =
     `오늘: ${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${days[today.getDay()]})`;
 
-  // 월 헤더 동적 추가
+  // 월 헤더 동적 추가 (월 + W1~W4 보조 표시)
   const theadRow = document.getElementById('theadRow');
   const curIdx = currentMonthIdx();
   MONTH_LABELS.forEach((lbl, i) => {
     const th = document.createElement('th');
     th.className = 'month-h';
-    th.textContent = lbl;
+    th.innerHTML = `<span class="month-name">${lbl}</span><div class="week-marks"><span>W1</span><span>W2</span><span>W3</span><span>W4</span></div>`;
     if (i === curIdx) th.style.background = '#fef9c3';
     theadRow.appendChild(th);
   });
+
+  // 분수 month index → "X월 NW" 라벨
+  function monthWeekLabel(idx) {
+    const m = Math.floor(idx);
+    const frac = idx - m;
+    const week = Math.min(4, Math.max(1, Math.round(frac * 4) + 1));
+    return `${MONTH_LABELS[m]} W${week}`;
+  }
   // 메모 컬럼
   const memoTh = document.createElement('th');
-  memoTh.style.minWidth = '160px';
+  memoTh.style.width = '160px';
   memoTh.textContent = '메모';
   theadRow.appendChild(memoTh);
 
-  // 본문 렌더링
-  const tbody = document.getElementById('ganttBody');
-  tasks.forEach((t, idx) => {
+  // ── 정렬 상태 & 정렬 순서 정의 ─────────────────────────────
+  // 복합 정렬: 클릭 순서대로 sortStack에 쌓이며, 앞쪽이 더 높은 우선순위
+  // 예) [{col:'name', dir:'asc'}, {col:'owner', dir:'asc'}] = 프로젝트 → 담당자 순
+  let sortStack = [{ col: 'status', dir: 'asc' }]; // 기본 = 상태순
+  let activeCat = 'all', activePrio = 'all', activeOwner = 'all', activeType = 'all', activeStatus = 'all', activeEffort = 'all';
+
+  const PRIO_ORDER   = { '상': 0, '중': 1, '하': 2 };
+  // 사용자 지정 우선순위: 기획 > 개발 > 디자인 > QA > 배포대기 > 검토 > 대기 > 배포완료
+  const STATUS_ORDER = { '기획': 0, '개발': 1, '디자인': 2, 'QA': 3, '배포대기': 4, '검토': 5, '대기': 6, '배포완료': 7 };
+  const TYPE_ORDER   = { '플랫폼': 0, '연동': 1, '구축': 2 };
+  const CAT_ORDER    = ['공통', '공연장', '공연', '전시', '스포츠'];
+
+  // 정렬 가능한 컬럼: 헤더 인덱스(0-based) 매핑
+  const SORT_COLS = [
+    { col: 'name',     idx: 1, label: '프로젝트' },
+    { col: 'owner',    idx: 2, label: '기획담당자' },
+    { col: 'type',     idx: 3, label: '유형' },
+    { col: 'priority', idx: 4, label: '우선순위' },
+    { col: 'status',   idx: 7, label: '상태' },
+  ];
+
+  function getSortValue(t, col) {
+    if (col === 'priority') return PRIO_ORDER[t.priority] ?? 99;
+    if (col === 'status')   return STATUS_ORDER[t.status] ?? 99;
+    if (col === 'type')     return TYPE_ORDER[t.type] ?? 99;
+    if (col === 'owner') {
+      const norm = v => (!v || v === '-' || v === '미정') ? '￿' : v;
+      return norm(t.owner);
+    }
+    if (col === 'name') {
+      return (t.name || '').replace(/^ㄴ\s*/, '');
+    }
+    return 0;
+  }
+
+  function compareTasks(a, b) {
+    for (const { col, dir } of sortStack) {
+      const av = getSortValue(a, col);
+      const bv = getSortValue(b, col);
+      let r = (typeof av === 'string') ? av.localeCompare(bv, 'ko') : (av - bv);
+      if (r !== 0) return dir === 'asc' ? r : -r;
+    }
+    return 0;
+  }
+
+  // ── 행 생성 ────────────────────────────────────────────────
+  function createRow(t) {
+    const effort = t.effort || '';
     const tr = document.createElement('tr');
     tr.dataset.cat = t.cat;
     tr.dataset.prio = t.priority;
+    tr.dataset.type = t.type;
+    tr.dataset.status = t.status;
+    tr.dataset.owner = t.owner || '';
+    tr.dataset.effort = effort;
 
-    // 1. 구분
     tr.appendChild(td(`<span class="cat-badge cat-${t.cat}">${t.cat}</span>`, 'cell'));
-    // 2. 프로젝트명
-    tr.appendChild(td(`<span class="row-name${t.sub ? ' sub' : ''}">${t.name}</span>`, 'cell'));
-    // 3. 담당자
+
+    // 프로젝트명 + 공수 뱃지
+    const effortBadge = effort ? `<span class="effort-badge effort-${effort}">${effort}</span>` : '';
+    const nameTd = td(`${effortBadge}<span class="row-name${t.sub ? ' sub' : ''}">${t.name}</span>`, 'cell');
+    tr.appendChild(nameTd);
     const ownerEmpty = !t.owner || t.owner === '-' || t.owner === '미정';
     tr.appendChild(td(`<span class="owner${ownerEmpty ? ' empty' : ''}">${t.owner || '-'}</span>`, 'cell'));
-    // 4. 유형
     tr.appendChild(td(`<span class="type">${t.type}</span>`, 'cell'));
-    // 5. 우선순위
     const prioTd = td(`<span class="prio prio-${t.priority}">${t.priority}</span>`, 'cell');
     prioTd.style.textAlign = 'center';
     tr.appendChild(prioTd);
-    // 6. 데드라인
     tr.appendChild(td(`<span class="deadline${t.deadlineStrike ? ' strike' : ''}">${t.deadline}</span>`, 'cell'));
-    // 7. 상태
+    tr.appendChild(td(`<span class="period${t.period ? '' : ' empty'}">${t.period || '-'}</span>`, 'cell'));
     tr.appendChild(td(`<span class="status status-${t.status}">${t.status}</span>`, 'cell'));
 
-    // 8~. 월별 셀 (전체를 합쳐서 1개 td로 만들고 내부에 막대 배치)
-    // 각 월별 셀을 개별로 만들고, 막대는 별도 컨테이너로 absolute 배치
+    // 타임라인 (colspan)
     const timelineTd = document.createElement('td');
     timelineTd.colSpan = MONTH_COUNT;
     timelineTd.style.position = 'relative';
     timelineTd.style.padding = '0';
 
-    const timelineWrapper = document.createElement('div');
-    timelineWrapper.className = 'timeline-row';
-    timelineWrapper.style.display = 'flex';
-    timelineWrapper.style.position = 'relative';
+    const wrap = document.createElement('div');
+    wrap.className = 'timeline-row';
+    wrap.style.display = 'flex';
+    wrap.style.position = 'relative';
 
     for (let i = 0; i < MONTH_COUNT; i++) {
       const cell = document.createElement('div');
       cell.className = 'month-cell';
       if (i === 0 || i === 12) cell.classList.add('year-divider');
       if (i === curIdx) cell.classList.add('current');
-      timelineWrapper.appendChild(cell);
+      wrap.appendChild(cell);
     }
-
-    // 막대 추가
-    (t.bars || []).forEach(b => {
-      const bar = document.createElement('div');
-      bar.className = `gantt-bar bar-${t.cat}`;
-      const cellW = 70;
-      bar.style.left = (b.from * cellW + 2) + 'px';
-      bar.style.width = ((b.to - b.from + 1) * cellW - 4) + 'px';
-      bar.textContent = b.label || '';
-      bar.title = `${MONTH_LABELS[b.from]} ~ ${MONTH_LABELS[b.to]}${b.label ? ' · ' + b.label : ''}`;
-      if ((t.bars.length > 1) && b.label === '') bar.classList.add('bar-faded');
-      timelineWrapper.appendChild(bar);
+    // 3단계 일정 막대 (기획 / QA / 배포)
+    const PHASES = [
+      { key: 'planBars',    cls: 'phase-plan',    tag: '기획' },
+      { key: 'qaBars',      cls: 'phase-qa',      tag: 'QA' },
+      { key: 'releaseBars', cls: 'phase-release', tag: '배포' },
+    ];
+    PHASES.forEach(p => {
+      (t[p.key] || []).forEach(b => {
+        const bar = document.createElement('div');
+        bar.className = `phase-bar ${p.cls} bar-status-${t.status}` + (p.cls === 'phase-plan' ? ' has-status' : '');
+        const cellW = 72;
+        if (p.key === 'releaseBars') {
+          // 배포는 단일 날짜 — 좁은 마커로 표시 (from 위치 = 해당 주 시작점에 점)
+          bar.style.left = (b.from * cellW + 6) + 'px'; // 주 시작점 기준 살짝 들여서 점 중심을 W 마크에 맞춤
+          bar.title = `[배포] ${monthWeekLabel(b.from)}${b.label ? ' · ' + b.label : ''}`;
+        } else {
+          // from/to를 week 인덱스(0.25 단위)로 해석. (to - from + 1) * cellW = 폭 (월 포함)
+          bar.style.left = (b.from * cellW + 1) + 'px';
+          bar.style.width = ((b.to - b.from + 1) * cellW - 2) + 'px';
+          bar.title = `[${p.tag}] ${monthWeekLabel(b.from)} ~ ${monthWeekLabel(b.to)}${b.label ? ' · ' + b.label : ''}`;
+        }
+        // 막대 위 텍스트는 표시하지 않음 (요청에 따라)
+        wrap.appendChild(bar);
+      });
     });
-
-    timelineTd.appendChild(timelineWrapper);
+    timelineTd.appendChild(wrap);
     tr.appendChild(timelineTd);
 
-    // 메모
     tr.appendChild(td(`<span class="note">${t.note || ''}</span>`, 'cell'));
-
-    tbody.appendChild(tr);
-  });
+    return tr;
+  }
 
   function td(html, cls) {
     const el = document.createElement('td');
@@ -296,53 +603,364 @@
     return el;
   }
 
-  // 필터링
-  let activeCat = 'all', activePrio = 'all';
-  document.querySelectorAll('.filter-btn[data-cat]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn[data-cat]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeCat = btn.dataset.cat;
-      applyFilter();
-    });
-  });
-  document.querySelectorAll('.filter-btn[data-prio]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn[data-prio]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activePrio = btn.dataset.prio;
-      applyFilter();
-    });
-  });
-  function applyFilter() {
-    document.querySelectorAll('#ganttBody tr').forEach(tr => {
-      const okCat = activeCat === 'all' || tr.dataset.cat === activeCat;
-      const okPrio = activePrio === 'all' || tr.dataset.prio === activePrio;
-      tr.classList.toggle('hidden', !(okCat && okPrio));
-    });
-    renderSummary();
+  // ── 렌더링 (정렬 → DOM 갱신 → 필터 → 요약) ─────────────────
+  const tbody = document.getElementById('ganttBody');
+  function renderBody() {
+    const sorted = [...tasks].sort(compareTasks);
+    tbody.innerHTML = '';
+    sorted.forEach(t => tbody.appendChild(createRow(t)));
+    applyFilter();
   }
 
-  // 요약 바
-  function renderSummary() {
-    const visible = tasks.filter((t, i) => {
-      const tr = document.querySelectorAll('#ganttBody tr')[i];
-      return !tr.classList.contains('hidden');
+  // ── 정렬 헤더 설정 ─────────────────────────────────────────
+  SORT_COLS.forEach(({ col, idx }) => {
+    const th = theadRow.children[idx];
+    th.classList.add('sortable');
+    const ind = document.createElement('span');
+    ind.className = 'sort-indicator';
+    ind.textContent = '⇅';
+    th.appendChild(ind);
+    th.title = '클릭: 정렬 추가/토글 / Shift+클릭: 이 컬럼만 단독 정렬';
+    th.addEventListener('click', (e) => {
+      const existingIdx = sortStack.findIndex(s => s.col === col);
+      if (e.shiftKey) {
+        // Shift+클릭: 이 컬럼 단독 정렬로 초기화
+        sortStack = [{ col, dir: 'asc' }];
+      } else if (existingIdx >= 0) {
+        const entry = sortStack[existingIdx];
+        if (entry.dir === 'asc') {
+          entry.dir = 'desc';
+        } else {
+          // asc → desc → 제거 (3-state cycle)
+          sortStack.splice(existingIdx, 1);
+        }
+      } else {
+        // 새 컬럼 클릭 → 스택 뒤에 추가 (낮은 우선순위)
+        sortStack.push({ col, dir: 'asc' });
+      }
+      updateSortIndicators();
+      renderBody();
     });
-    const total = visible.length;
-    const byStatus = {};
-    visible.forEach(t => byStatus[t.status] = (byStatus[t.status] || 0) + 1);
-    const order = ['기획','개발','디자인','QA','배포대기','검토','대기'];
-    const parts = [
-      `<div class="summary-item"><span class="summary-num">${total}</span><span class="summary-label">건</span></div>`,
-      `<div class="summary-divider"></div>`,
-    ];
-    order.forEach(s => {
-      if (byStatus[s]) parts.push(`<div class="summary-item"><span class="status status-${s}">${s}</span><span class="summary-num">${byStatus[s]}</span></div>`);
+  });
+
+  function updateSortIndicators() {
+    SORT_COLS.forEach(({ col, idx }) => {
+      const th = theadRow.children[idx];
+      const ind = th.querySelector('.sort-indicator');
+      const sIdx = sortStack.findIndex(s => s.col === col);
+      if (sIdx >= 0) {
+        const entry = sortStack[sIdx];
+        const num = sortStack.length > 1 ? `<sup class="sort-rank">${sIdx + 1}</sup>` : '';
+        ind.innerHTML = (entry.dir === 'asc' ? '▲' : '▼') + num;
+        ind.classList.add('active');
+        th.classList.add('sorted');
+      } else {
+        ind.textContent = '⇅';
+        ind.classList.remove('active');
+        th.classList.remove('sorted');
+      }
     });
-    document.getElementById('summary').innerHTML = parts.join('');
   }
-  renderSummary();
+
+  // ── 필터 (드롭다운) ─────────────────────────────────────────
+  // 담당자 옵션을 데이터에서 동적으로 채움 ('미정'은 항상 맨 하단)
+  (function populateOwnerFilter() {
+    const ownerSel = document.getElementById('filterOwner');
+    const set = new Set();
+    let hasUndecided = false;
+    tasks.forEach(t => {
+      const raw = (t.owner || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (raw.length === 0) { hasUndecided = true; return; }
+      raw.forEach(o => {
+        if (o === '-' || o === '미정') hasUndecided = true;
+        else set.add(o);
+      });
+    });
+    [...set].sort((a, b) => a.localeCompare(b, 'ko')).forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o; opt.textContent = o;
+      ownerSel.appendChild(opt);
+    });
+    if (hasUndecided) {
+      const opt = document.createElement('option');
+      opt.value = '미정'; opt.textContent = '미정';
+      ownerSel.appendChild(opt);
+    }
+  })();
+
+  const FILTERS = [
+    { id: 'filterEffort', get: () => activeEffort, set: v => activeEffort = v },
+    { id: 'filterCat',    get: () => activeCat,    set: v => activeCat = v },
+    { id: 'filterOwner',  get: () => activeOwner,  set: v => activeOwner = v },
+    { id: 'filterType',   get: () => activeType,   set: v => activeType = v },
+    { id: 'filterPrio',   get: () => activePrio,   set: v => activePrio = v },
+    { id: 'filterStatus', get: () => activeStatus, set: v => activeStatus = v },
+  ];
+
+  FILTERS.forEach(f => {
+    const el = document.getElementById(f.id);
+    el.addEventListener('change', () => {
+      f.set(el.value);
+      el.classList.toggle('active', el.value !== 'all');
+      applyFilter();
+      updateResetButton();
+    });
+  });
+
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    FILTERS.forEach(f => {
+      f.set('all');
+      const el = document.getElementById(f.id);
+      el.value = 'all';
+      el.classList.remove('active');
+    });
+    applyFilter();
+    updateResetButton();
+  });
+
+  function updateResetButton() {
+    const hasActive = FILTERS.some(f => f.get() !== 'all');
+    document.getElementById('resetFilters').classList.toggle('has-active', hasActive);
+  }
+
+  function matchOwner(ownerStr, target) {
+    const owners = (ownerStr || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (target === '미정') return owners.length === 0 || owners.some(o => o === '-' || o === '미정');
+    return owners.includes(target);
+  }
+
+  function applyFilter() {
+    document.querySelectorAll('#ganttBody tr').forEach(tr => {
+      const okCat    = activeCat    === 'all' || tr.dataset.cat    === activeCat;
+      const okPrio   = activePrio   === 'all' || tr.dataset.prio   === activePrio;
+      const okType   = activeType   === 'all' || tr.dataset.type   === activeType;
+      const okStatus = activeStatus === 'all' || tr.dataset.status === activeStatus;
+      const okOwner  = activeOwner  === 'all' || matchOwner(tr.dataset.owner, activeOwner);
+      const okEffort = activeEffort === 'all' || tr.dataset.effort === activeEffort;
+      tr.classList.toggle('hidden', !(okCat && okPrio && okType && okStatus && okOwner && okEffort));
+    });
+    renderSummary();
+    renderOwnerDetail();
+  }
+
+  // ── 요약 (총건수 + 구분/담당자/유형/상태) ─────────────────
+  function getVisibleTasks() {
+    return tasks.filter(t => {
+      if (activeEffort !== 'all' && (t.effort || '') !== activeEffort) return false;
+      if (activeCat    !== 'all' && t.cat      !== activeCat)    return false;
+      if (activePrio   !== 'all' && t.priority !== activePrio)   return false;
+      if (activeType   !== 'all' && t.type     !== activeType)   return false;
+      if (activeStatus !== 'all' && t.status   !== activeStatus) return false;
+      if (activeOwner  !== 'all' && !matchOwner(t.owner, activeOwner)) return false;
+      return true;
+    });
+  }
+
+  function countBy(list, keyFn) {
+    const map = {};
+    list.forEach(item => {
+      const k = keyFn(item);
+      if (!k) return;
+      map[k] = (map[k] || 0) + 1;
+    });
+    return map;
+  }
+
+  function countByOwner(list) {
+    const map = {};
+    list.forEach(t => {
+      const owners = (t.owner || '').split(',').map(s => s.trim()).filter(s => s && s !== '-' && s !== '미정');
+      if (owners.length === 0) {
+        map['미정'] = (map['미정'] || 0) + 1;
+      } else {
+        owners.forEach(o => { map[o] = (map[o] || 0) + 1; });
+      }
+    });
+    return map;
+  }
+
+  function renderSummary() {
+    const visible = getVisibleTasks();
+    const total = visible.length;
+
+    const byCat    = countBy(visible, t => t.cat);
+    const byOwner  = countByOwner(visible);
+    const byType   = countBy(visible, t => t.type);
+    const byStatus = countBy(visible, t => t.status);
+    const byEffort = countBy(visible, t => t.effort || '미지정');
+
+    const typeOrder   = ['플랫폼', '연동', '구축'];
+    const statusOrder = ['기획', '개발', '디자인', 'QA', '배포대기', '검토', '대기', '배포완료'];
+
+    const filterParts = [];
+    if (activeEffort !== 'all') filterParts.push(`공수: ${activeEffort}`);
+    if (activeCat    !== 'all') filterParts.push(`구분: ${activeCat}`);
+    if (activeOwner  !== 'all') filterParts.push(`담당자: ${activeOwner}`);
+    if (activeType   !== 'all') filterParts.push(`유형: ${activeType}`);
+    if (activePrio   !== 'all') filterParts.push(`우선순위: ${activePrio}`);
+    if (activeStatus !== 'all') filterParts.push(`상태: ${activeStatus}`);
+    const filterHint = filterParts.length
+      ? `<span class="filter-hint">· 필터: ${filterParts.join(' · ')}</span>`
+      : '';
+
+    // 담당자: 건수 내림차순, '미정'은 항상 맨 뒤
+    const ownersSorted = Object.entries(byOwner).sort((a, b) => {
+      if (a[0] === '미정' && b[0] !== '미정') return 1;
+      if (a[0] !== '미정' && b[0] === '미정') return -1;
+      return b[1] - a[1] || a[0].localeCompare(b[0], 'ko');
+    });
+
+    const html = `
+      <div class="summary-total">
+        <span class="summary-num">${total}</span><span class="summary-label">건</span>
+        ${filterHint}
+      </div>
+      <div class="summary-row">
+        <span class="summary-row-label">담당자별</span>
+        ${ownersSorted.map(([o, n]) =>
+          `<span class="summary-pill"><span class="pill-label">${o}</span><span class="summary-num">${n}</span></span>`
+        ).join('')}
+      </div>
+      <div class="summary-row">
+        <span class="summary-row-label">공수별</span>
+        ${['대','중','소','미지정'].filter(e => byEffort[e]).map(e =>
+          `<span class="summary-pill"><span class="effort-badge effort-${e === '미지정' ? '' : e}" style="${e === '미지정' ? 'background:#f1f5f9;color:#64748b' : ''}">${e}</span><span class="summary-num">${byEffort[e]}</span></span>`
+        ).join('')}
+      </div>
+      <div class="summary-row">
+        <span class="summary-row-label">구분별</span>
+        ${CAT_ORDER.filter(c => byCat[c]).map(c =>
+          `<span class="summary-pill"><span class="cat-badge cat-${c}">${c}</span><span class="summary-num">${byCat[c]}</span></span>`
+        ).join('')}
+      </div>
+      <div class="summary-row">
+        <span class="summary-row-label">유형별</span>
+        ${typeOrder.filter(t => byType[t]).map(t =>
+          `<span class="summary-pill"><span class="pill-label">${t}</span><span class="summary-num">${byType[t]}</span></span>`
+        ).join('')}
+      </div>
+      <div class="summary-row">
+        <span class="summary-row-label">상태별</span>
+        ${statusOrder.filter(s => byStatus[s]).map(s =>
+          `<span class="summary-pill"><span class="status status-${s}">${s}</span><span class="summary-num">${byStatus[s]}</span></span>`
+        ).join('')}
+      </div>
+    `;
+    document.getElementById('summary').innerHTML = html;
+  }
+
+  // ── 담당자별 상세 통계 ─────────────────────────────────────
+  function getOwnerStats(list) {
+    // Map<owner, { count, cats, types, statuses, efforts, projects }>
+    const stats = new Map();
+    list.forEach(t => {
+      const raw = (t.owner || '').split(',').map(s => s.trim()).filter(Boolean);
+      const owners = raw.length === 0 ? ['미정']
+        : raw.map(o => (o === '-' ? '미정' : o));
+      owners.forEach(o => {
+        if (!stats.has(o)) stats.set(o, { count: 0, cats: {}, types: {}, statuses: {}, efforts: {}, projects: [] });
+        const s = stats.get(o);
+        s.count++;
+        s.cats[t.cat]      = (s.cats[t.cat]      || 0) + 1;
+        s.types[t.type]    = (s.types[t.type]    || 0) + 1;
+        s.statuses[t.status] = (s.statuses[t.status] || 0) + 1;
+        const eff = t.effort || '미지정';
+        s.efforts[eff]    = (s.efforts[eff]    || 0) + 1;
+        s.projects.push(t.name);
+      });
+    });
+    return stats;
+  }
+
+  function renderOwnerDetail() {
+    const visible = getVisibleTasks();
+    const stats = getOwnerStats(visible);
+    const sorted = [...stats.entries()].sort((a, b) => {
+      if (a[0] === '미정' && b[0] !== '미정') return 1;
+      if (a[0] !== '미정' && b[0] === '미정') return -1;
+      return b[1].count - a[1].count || a[0].localeCompare(b[0], 'ko');
+    });
+
+    const TYPE_ORDER   = ['플랫폼', '연동', '구축'];
+    const STATUS_ORDER = ['기획', '개발', '디자인', 'QA', '배포대기', '검토', '대기'];
+
+    const tbody = document.getElementById('ownerDetailTbody');
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="14" class="empty-state">표시할 데이터가 없습니다.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = sorted.map(([owner, s]) => {
+      const projectList = s.projects.join(' / ');
+      const catPills = CAT_ORDER.filter(c => s.cats[c]).map(c =>
+        `<span class="detail-pill"><span class="pill-label-sm">${c}</span><span class="num">${s.cats[c]}</span></span>`
+      ).join('');
+      const typePills = TYPE_ORDER.filter(t => s.types[t]).map(t =>
+        `<span class="detail-pill"><span class="pill-label-sm">${t}</span><span class="num">${s.types[t]}</span></span>`
+      ).join('');
+      const STATUS_COLS = [
+        { keys: ['기획'] },
+        { keys: ['개발'] },
+        { keys: ['디자인'] },
+        { keys: ['QA'] },
+        { keys: ['배포대기'] },
+        { keys: ['배포완료'] },
+        { keys: ['검토', '대기'] },
+      ];
+      const statusCells = STATUS_COLS.map((col, i) => {
+        const n = col.keys.reduce((sum, k) => sum + (s.statuses[k] || 0), 0);
+        const cls = `status-count${n === 0 ? ' zero' : ''}${i === 0 ? ' status-divider' : ''}`;
+        return `<td class="${cls}">${n || '-'}</td>`;
+      }).join('');
+
+      // 공수 대/중/소 카운트 셀
+      const effortCells = ['대', '중', '소'].map((e, i) => {
+        const n = s.efforts[e] || 0;
+        const cls = `effort-count ${e}${n === 0 ? ' zero' : ''}${i === 0 ? ' effort-divider' : ''}`;
+        return `<td class="${cls}">${n || '-'}</td>`;
+      }).join('');
+
+      return `
+        <tr title="${projectList.replace(/"/g, '&quot;')}">
+          <td class="owner-name-cell">${owner}</td>
+          <td class="owner-count-cell"><span class="owner-count">${s.count}</span></td>
+          ${effortCells}
+          ${statusCells}
+          <td class="status-divider"><div class="detail-pills">${catPills}</div></td>
+          <td><div class="detail-pills">${typePills}</div></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 접기/펼치기 토글
+  const ownerDetailEl = document.getElementById('ownerDetail');
+  document.getElementById('ownerDetailToggle').addEventListener('click', (e) => {
+    ownerDetailEl.classList.toggle('collapsed');
+    e.target.textContent = ownerDetailEl.classList.contains('collapsed') ? '펼치기' : '접기';
+  });
+
+  // ── 레거시 bars → 3단계(planBars/qaBars/releaseBars) 자동 분류 ─
+  // 기존 데이터는 status를 기준으로 적절한 phase로 옮겨준다.
+  (function migrateLegacyBars() {
+    tasks.forEach(t => {
+      if (!t.bars || !t.bars.length) return;
+      const hasPhase = (t.planBars && t.planBars.length) ||
+                       (t.qaBars && t.qaBars.length) ||
+                       (t.releaseBars && t.releaseBars.length);
+      const target = (() => {
+        if (t.status === 'QA') return 'qaBars';
+        if (t.status === '배포대기' || t.status === '배포완료') return 'releaseBars';
+        return 'planBars';
+      })();
+      if (!hasPhase) t[target] = [...t.bars];
+      t.bars = [];
+    });
+  })();
+
+  // ── 초기 렌더 ──────────────────────────────────────────────
+  updateSortIndicators();
+  renderBody();
 </script>
 </body>
 </html>
