@@ -528,7 +528,25 @@
     return 0;
   }
 
+  // 기간 정렬을 적용할 "진행 중" 상태들 (이 외 상태는 아래 그룹으로 분리)
+  const ACTIVE_STATUSES = new Set(['기획', '개발', 'QA']);
+
   function compareTasks(a, b) {
+    // 1) 그룹 분리: 진행중(기획/개발/QA) 그룹이 항상 위, 나머지 그룹은 아래
+    const aActive = ACTIVE_STATUSES.has(a.status);
+    const bActive = ACTIVE_STATUSES.has(b.status);
+    if (aActive !== bActive) return aActive ? -1 : 1;
+
+    // 2) 비-진행중 그룹: STATUS_ORDER 기준 고정 정렬 (사용자 sortStack 무시)
+    //    → 디자인 → 배포대기 → 검토 → 대기 → 배포완료
+    if (!aActive) {
+      const ao = STATUS_ORDER[a.status] ?? 99;
+      const bo = STATUS_ORDER[b.status] ?? 99;
+      if (ao !== bo) return ao - bo;
+      return 0;
+    }
+
+    // 3) 진행중 그룹: 사용자 sortStack 적용 (기본은 기간시작 → 프로젝트명)
     for (const { col, dir } of sortStack) {
       const av = getSortValue(a, col);
       const bv = getSortValue(b, col);
