@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>티켓링크 프로젝트 일정표 : 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, sans-serif; background: #f8fafc; color: #1e293b; padding: 20px; min-width: 1400px; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  h1 { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px; }
+  .meta { font-size: 13px; color: #64748b; }
+
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .filter-btn { padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: 20px; border: 1.5px solid #e2e8f0; background: white; color: #475569; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: #cbd5e1; }
+  .filter-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+  .filter-divider { width: 1px; height: 18px; background: #e2e8f0; margin: 0 4px; }
+  .legend { display: flex; gap: 12px; font-size: 11px; color: #64748b; margin-left: auto; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .gantt { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .gantt-table { border-collapse: collapse; width: max-content; min-width: 100%; }
+  .gantt-table thead { position: sticky; top: 0; z-index: 5; }
+  .gantt-table th { background: #f8fafc; font-size: 12px; font-weight: 700; color: #475569; padding: 10px 8px; border-bottom: 2px solid #e2e8f0; border-right: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
+  .gantt-table th.month-h { text-align: center; min-width: 70px; }
+  .gantt-table td { padding: 0; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; font-size: 12.5px; vertical-align: middle; }
+  .gantt-table td.cell { padding: 8px 8px; }
+  .gantt-table tbody tr:hover { background: #f8fafc; }
+
+  /* Category badge */
+  .cat-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .cat-공통 { background: #fce7f3; color: #be185d; }
+  .cat-공연장 { background: #ecfccb; color: #4d7c0f; }
+  .cat-공연 { background: #fef3c7; color: #b45309; }
+  .cat-전시 { background: #e0e7ff; color: #4338ca; }
+  .cat-스포츠 { background: #cffafe; color: #0e7490; }
+
+  /* Priority */
+  .prio { font-weight: 700; font-size: 12px; }
+  .prio-상 { color: #dc2626; }
+  .prio-중 { color: #f59e0b; }
+  .prio-하 { color: #94a3b8; }
+
+  /* Status badge */
+  .status { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .status-배포대기 { background: #fbcfe8; color: #9d174d; }
+  .status-기획 { background: #fed7aa; color: #9a3412; }
+  .status-QA { background: #bfdbfe; color: #1e40af; }
+  .status-검토 { background: #bbf7d0; color: #166534; }
+  .status-대기 { background: #e2e8f0; color: #475569; }
+  .status-디자인 { background: #ddd6fe; color: #5b21b6; }
+  .status-개발 { background: #fef08a; color: #854d0e; }
+
+  .row-name { font-weight: 600; color: #0f172a; }
+  .row-name.sub { color: #475569; font-weight: 500; padding-left: 12px; }
+  .owner { color: #475569; }
+  .owner.empty { color: #cbd5e1; }
+  .type { color: #64748b; font-size: 11.5px; }
+  .deadline { color: #475569; font-size: 11.5px; white-space: nowrap; }
+  .deadline.strike { text-decoration: line-through; color: #94a3b8; }
+  .note { color: #64748b; font-size: 11px; font-style: italic; }
+
+  /* Gantt timeline cell */
+  .timeline-row { position: relative; height: 36px; }
+  .month-cell { width: 70px; min-width: 70px; height: 36px; border-right: 1px solid #f1f5f9; position: relative; }
+  .month-cell.q-end { border-right: 1px solid #e2e8f0; }
+  .month-cell.year-divider { border-right: 2px solid #cbd5e1; }
+  .month-cell.current { background: #fef9c3; }
+
+  .gantt-bar { position: absolute; top: 6px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; color: white; padding: 0 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); overflow: hidden; white-space: nowrap; }
+  .bar-공통 { background: linear-gradient(135deg, #ec4899, #db2777); }
+  .bar-공연장 { background: linear-gradient(135deg, #84cc16, #65a30d); }
+  .bar-공연 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .bar-전시 { background: linear-gradient(135deg, #818cf8, #6366f1); }
+  .bar-스포츠 { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+  .bar-faded { opacity: 0.55; }
+
+  .summary-bar { display: flex; gap: 12px; margin-top: 14px; padding: 12px 16px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 12.5px; flex-wrap: wrap; }
+  .summary-item { display: flex; align-items: center; gap: 6px; }
+  .summary-num { font-size: 16px; font-weight: 800; color: #0f172a; }
+  .summary-label { color: #64748b; }
+  .summary-divider { width: 1px; background: #e2e8f0; }
+
+  tr.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>티켓링크 프로젝트 일정표 : 2026</h1>
+  <div class="meta" id="todayMeta"></div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-cat="all">전체</button>
+  <button class="filter-btn" data-cat="공통">공통</button>
+  <button class="filter-btn" data-cat="공연장">공연장</button>
+  <button class="filter-btn" data-cat="공연">공연</button>
+  <button class="filter-btn" data-cat="전시">전시</button>
+  <button class="filter-btn" data-cat="스포츠">스포츠</button>
+  <div class="filter-divider"></div>
+  <button class="filter-btn" data-prio="all">우선순위 전체</button>
+  <button class="filter-btn" data-prio="상">상</button>
+  <button class="filter-btn" data-prio="중">중</button>
+  <button class="filter-btn" data-prio="하">하</button>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:#ec4899"></span>공통</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#84cc16"></span>공연장</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>공연</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#6366f1"></span>전시</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#06b6d4"></span>스포츠</div>
+  </div>
+</div>
+
+<div class="gantt">
+  <table class="gantt-table" id="ganttTable">
+    <thead>
+      <tr id="theadRow">
+        <th style="min-width:60px">구분</th>
+        <th style="min-width:280px">프로젝트</th>
+        <th style="min-width:140px">기획담당자</th>
+        <th style="min-width:60px">유형</th>
+        <th style="min-width:50px; text-align:center">우선순위</th>
+        <th style="min-width:90px">데드라인</th>
+        <th style="min-width:80px">상태</th>
+        <!-- 월 헤더는 JS로 동적 생성 -->
+      </tr>
+    </thead>
+    <tbody id="ganttBody"></tbody>
+  </table>
+</div>
+
+<div class="summary-bar" id="summary"></div>
+
+<script>
+  // 13개월: 2025-12 ~ 2026-12 (시트 헤더가 12, 1~12)
+  const MONTH_COUNT = 13;
+  const MONTH_LABELS = ['12월','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  // 인덱스 매핑: 0=2025-12, 1=2026-01 ... 12=2026-12
+
+  // 데이터 (시트 원본 기준)
+  const tasks = [
+    // [공통]
+    { cat:'공통', name:'일본 1차', owner:'현예원, 정원경, 심해란', type:'플랫폼', priority:'상', deadline:'12/22, 2/2', deadlineStrike:true, status:'배포대기', bars:[{from:0, to:2, label:'2/2'}], note:'' },
+    { cat:'공통', name:'일본 2차 (티켓, MD, 켜담)', owner:'심해란, 박지은', type:'플랫폼', priority:'상', deadline:'미정', status:'기획', bars:[{from:0, to:3, label:'POC'}], note:'' },
+    { cat:'공통', name:'리브랜딩 모바일 (1차)', owner:'심해란, 김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', bars:[{from:0, to:5, label:'QA'}], note:'' },
+    { cat:'공통', name:'ㄴ 검색개선', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', sub:true, bars:[{from:0, to:5, label:'QA'}], note:'' },
+    { cat:'공통', name:'ㄴ 검색개선 (AI 미니프로젝트)', owner:'김지혜', type:'플랫폼', priority:'하', deadline:'-', status:'QA', sub:true, bars:[], note:'' },
+    { cat:'공통', name:'리브랜딩 모바일 (2차) - 스마트티켓 외 잔여이슈', owner:'심해란, 김지혜', type:'플랫폼', priority:'상', deadline:'26년 9월', status:'기획', bars:[{from:5, to:9, label:'기획'}], note:'티켓 및 1차 제외항목' },
+    { cat:'공통', name:'리브랜딩 PC (3차)', owner:'정원경', type:'플랫폼', priority:'상', deadline:'미정', status:'기획', bars:[{from:5, to:12, label:''}], note:'PC' },
+    { cat:'공통', name:'에치금 (PAYCO)', owner:'염재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'기획', bars:[{from:0, to:5, label:''}], note:'' },
+    { cat:'공통', name:'조계중', owner:'임은혜', type:'구축', priority:'중', deadline:'미정', status:'검토', bars:[], note:'' },
+    { cat:'공통', name:'KREAM 연동 판매 관리 (연간)', owner:'염재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'런타스'}], note:'' },
+    { cat:'공통', name:'기획전 투표기능 추가', owner:'임은혜', type:'플랫폼', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
+    { cat:'공통', name:'인디패스 (AI 미니프로젝트)', owner:'미정', type:'구축', priority:'하', deadline:'-', status:'대기', bars:[], note:'' },
+
+    // [공연장]
+    { cat:'공연장', name:'티켓링크 1975 씨어터 홈페이지 구축', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
+    { cat:'공연장', name:'연세대학교 유지보수', owner:'임은혜', type:'구축', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
+
+    // [공연]
+    { cat:'공연', name:'사릇데시어터 글로벌 회원예매', owner:'임은혜', type:'연동', priority:'중', deadline:'1/14, 5/6', status:'QA', bars:[{from:0, to:0, label:'QA'}, {from:1, to:1, label:'1/14'}, {from:5, to:5, label:'QA'}], note:'' },
+    { cat:'공연', name:'위버스 팬클럽 회원 연동', owner:'현예원', type:'연동', priority:'상', deadline:'04/17', status:'배포대기', bars:[], note:'' },
+    { cat:'공연', name:'GS칼텍스 예술마루', owner:'임은혜', type:'연동', priority:'하', deadline:'26년 3월', status:'배포대기', bars:[], note:'' },
+    { cat:'공연', name:'eKYC 인증 도입', owner:'현예원', type:'플랫폼', priority:'중', deadline:'26년 5월', status:'기획', bars:[], note:'' },
+    { cat:'공연', name:'키오스크 베리어프리 대응 (솔비포스)', owner:'임은혜', type:'연동', priority:'상', deadline:'26년 6월', status:'디자인', bars:[], note:'' },
+
+    // [전시]
+    { cat:'전시', name:'K현대미술관 시설 연동 (게이트, 모바일티켓 외)', owner:'현예원', type:'연동', priority:'하', deadline:'26년 4월', status:'QA', bars:[], note:'' },
+
+    // [공연] (계속)
+    { cat:'공연', name:'네이버예약 개선 (N개상품)', owner:'정서희', type:'연동', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
+    { cat:'공연', name:'사릇데리뉴얼 연동', owner:'-', type:'연동', priority:'중', deadline:'-', status:'대기', bars:[], note:'' },
+    { cat:'공연', name:'두산아트센터 연동', owner:'-', type:'연동', priority:'중', deadline:'26년 11월', status:'대기', bars:[], note:'' },
+    { cat:'공연', name:'시설 상품 디스플레이 화면 신규', owner:'-', type:'플랫폼', priority:'중', deadline:'26년 11월', status:'대기', bars:[], note:'' },
+    { cat:'공연', name:'파트너시스템', owner:'정원경', type:'플랫폼', priority:'상', deadline:'-', status:'대기', bars:[], note:'' },
+
+    // [스포츠]
+    { cat:'스포츠', name:'다카르 청소년 올림픽 (글로벌 시설, 서비 이전)', owner:'정원경, 임은혜', type:'구축', priority:'상', deadline:'26년 5월', status:'개발', bars:[{from:5, to:5, label:'QA'}, {from:6, to:6, label:'매뉴오스'}, {from:9, to:9, label:'1월'}, {from:10, to:10, label:'3\'1현장'}], note:'' },
+    { cat:'스포츠', name:'26시즌 쿠팡 시리즈 (연간)', owner:'염재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'축구'}], note:'' },
+    { cat:'스포츠', name:'경남도민프로축구단 연동', owner:'염재홍', type:'연동', priority:'하', deadline:'26년 5월', status:'기획', bars:[{from:6, to:6, label:'포인트'}], note:'' },
+    { cat:'스포츠', name:'부가상품 개선/고도화', owner:'현예원', type:'플랫폼', priority:'상', deadline:'6월', status:'개발', bars:[{from:8, to:8, label:'배포'}, {from:9, to:9, label:'사용'}], note:'' },
+    { cat:'스포츠', name:'네이버스포츠 연동', owner:'염재홍', type:'연동', priority:'중', deadline:'-', status:'기획', bars:[], note:'' },
+    { cat:'스포츠', name:'종청 U 대회', owner:'염재홍', type:'플랫폼', priority:'상', deadline:'27년', status:'대기', bars:[], note:'' },
+    { cat:'스포츠', name:'KBL', owner:'미정', type:'연동', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
+    { cat:'스포츠', name:'KOVO', owner:'미정', type:'연동', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
+  ];
+
+  // 오늘 날짜 → 월 인덱스 (0=2025-12 기준)
+  function currentMonthIdx() {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth() + 1; // 1~12
+    // 2025-12 → 0, 2026-01 → 1, ..., 2026-12 → 12
+    if (y === 2025 && m === 12) return 0;
+    if (y === 2026) return m;
+    if (y < 2025 || (y === 2025 && m < 12)) return -1;
+    return MONTH_COUNT;
+  }
+
+  const today = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  document.getElementById('todayMeta').textContent =
+    `오늘: ${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${days[today.getDay()]})`;
+
+  // 월 헤더 동적 추가
+  const theadRow = document.getElementById('theadRow');
+  const curIdx = currentMonthIdx();
+  MONTH_LABELS.forEach((lbl, i) => {
+    const th = document.createElement('th');
+    th.className = 'month-h';
+    th.textContent = lbl;
+    if (i === curIdx) th.style.background = '#fef9c3';
+    theadRow.appendChild(th);
+  });
+  // 메모 컬럼
+  const memoTh = document.createElement('th');
+  memoTh.style.minWidth = '160px';
+  memoTh.textContent = '메모';
+  theadRow.appendChild(memoTh);
+
+  // 본문 렌더링
+  const tbody = document.getElementById('ganttBody');
+  tasks.forEach((t, idx) => {
+    const tr = document.createElement('tr');
+    tr.dataset.cat = t.cat;
+    tr.dataset.prio = t.priority;
+
+    // 1. 구분
+    tr.appendChild(td(`<span class="cat-badge cat-${t.cat}">${t.cat}</span>`, 'cell'));
+    // 2. 프로젝트명
+    tr.appendChild(td(`<span class="row-name${t.sub ? ' sub' : ''}">${t.name}</span>`, 'cell'));
+    // 3. 담당자
+    const ownerEmpty = !t.owner || t.owner === '-' || t.owner === '미정';
+    tr.appendChild(td(`<span class="owner${ownerEmpty ? ' empty' : ''}">${t.owner || '-'}</span>`, 'cell'));
+    // 4. 유형
+    tr.appendChild(td(`<span class="type">${t.type}</span>`, 'cell'));
+    // 5. 우선순위
+    const prioTd = td(`<span class="prio prio-${t.priority}">${t.priority}</span>`, 'cell');
+    prioTd.style.textAlign = 'center';
+    tr.appendChild(prioTd);
+    // 6. 데드라인
+    tr.appendChild(td(`<span class="deadline${t.deadlineStrike ? ' strike' : ''}">${t.deadline}</span>`, 'cell'));
+    // 7. 상태
+    tr.appendChild(td(`<span class="status status-${t.status}">${t.status}</span>`, 'cell'));
+
+    // 8~. 월별 셀 (전체를 합쳐서 1개 td로 만들고 내부에 막대 배치)
+    // 각 월별 셀을 개별로 만들고, 막대는 별도 컨테이너로 absolute 배치
+    const timelineTd = document.createElement('td');
+    timelineTd.colSpan = MONTH_COUNT;
+    timelineTd.style.position = 'relative';
+    timelineTd.style.padding = '0';
+
+    const timelineWrapper = document.createElement('div');
+    timelineWrapper.className = 'timeline-row';
+    timelineWrapper.style.display = 'flex';
+    timelineWrapper.style.position = 'relative';
+
+    for (let i = 0; i < MONTH_COUNT; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'month-cell';
+      if (i === 0 || i === 12) cell.classList.add('year-divider');
+      if (i === curIdx) cell.classList.add('current');
+      timelineWrapper.appendChild(cell);
+    }
+
+    // 막대 추가
+    (t.bars || []).forEach(b => {
+      const bar = document.createElement('div');
+      bar.className = `gantt-bar bar-${t.cat}`;
+      const cellW = 70;
+      bar.style.left = (b.from * cellW + 2) + 'px';
+      bar.style.width = ((b.to - b.from + 1) * cellW - 4) + 'px';
+      bar.textContent = b.label || '';
+      bar.title = `${MONTH_LABELS[b.from]} ~ ${MONTH_LABELS[b.to]}${b.label ? ' · ' + b.label : ''}`;
+      if ((t.bars.length > 1) && b.label === '') bar.classList.add('bar-faded');
+      timelineWrapper.appendChild(bar);
+    });
+
+    timelineTd.appendChild(timelineWrapper);
+    tr.appendChild(timelineTd);
+
+    // 메모
+    tr.appendChild(td(`<span class="note">${t.note || ''}</span>`, 'cell'));
+
+    tbody.appendChild(tr);
+  });
+
+  function td(html, cls) {
+    const el = document.createElement('td');
+    el.className = cls || '';
+    el.innerHTML = html;
+    return el;
+  }
+
+  // 필터링
+  let activeCat = 'all', activePrio = 'all';
+  document.querySelectorAll('.filter-btn[data-cat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn[data-cat]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat = btn.dataset.cat;
+      applyFilter();
+    });
+  });
+  document.querySelectorAll('.filter-btn[data-prio]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn[data-prio]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activePrio = btn.dataset.prio;
+      applyFilter();
+    });
+  });
+  function applyFilter() {
+    document.querySelectorAll('#ganttBody tr').forEach(tr => {
+      const okCat = activeCat === 'all' || tr.dataset.cat === activeCat;
+      const okPrio = activePrio === 'all' || tr.dataset.prio === activePrio;
+      tr.classList.toggle('hidden', !(okCat && okPrio));
+    });
+    renderSummary();
+  }
+
+  // 요약 바
+  function renderSummary() {
+    const visible = tasks.filter((t, i) => {
+      const tr = document.querySelectorAll('#ganttBody tr')[i];
+      return !tr.classList.contains('hidden');
+    });
+    const total = visible.length;
+    const byStatus = {};
+    visible.forEach(t => byStatus[t.status] = (byStatus[t.status] || 0) + 1);
+    const order = ['기획','개발','디자인','QA','배포대기','검토','대기'];
+    const parts = [
+      `<div class="summary-item"><span class="summary-num">${total}</span><span class="summary-label">건</span></div>`,
+      `<div class="summary-divider"></div>`,
+    ];
+    order.forEach(s => {
+      if (byStatus[s]) parts.push(`<div class="summary-item"><span class="status status-${s}">${s}</span><span class="summary-num">${byStatus[s]}</span></div>`);
+    });
+    document.getElementById('summary').innerHTML = parts.join('');
+  }
+  renderSummary();
+</script>
+</body>
+</html>
