@@ -84,7 +84,7 @@
   .status-디자인 { background: #ddd6fe; color: #5b21b6; }
   .status-개발 { background: #fef08a; color: #854d0e; }
 
-  .row-name { font-weight: 600; color: #0f172a; display: inline-block; }
+  .row-name { font-weight: 600; color: #0f172a; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
   .row-name.sub { color: #475569; font-weight: 500; padding-left: 12px; }
   .effort-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9.5px; font-weight: 800; margin-right: 5px; letter-spacing: 0.3px; vertical-align: middle; }
   .effort-대 { background: #fee2e2; color: #b91c1c; }
@@ -334,7 +334,7 @@
         <th style="width:60px">구분</th>
         <th style="width:60px">유형</th>
         <th style="width:60px; text-align:center">규모</th>
-        <th style="width:280px">프로젝트</th>
+        <th style="width:220px">프로젝트</th>
         <th style="width:140px">기획담당자</th>
         <th style="width:72px; text-align:center">우선순위</th>
         <th style="width:80px">데드라인</th>
@@ -569,8 +569,9 @@
     const scaleTd = td(scale ? `<span class="effort-badge effort-${scale}">${scale}</span>` : `<span class="period empty">-</span>`, 'cell');
     scaleTd.style.textAlign = 'center';
     tr.appendChild(scaleTd);
-    // 4. 프로젝트
-    tr.appendChild(td(`<span class="row-name${t.sub ? ' sub' : ''}">${t.name}</span>`, 'cell'));
+    // 4. 프로젝트 (긴 이름은 ellipsis + title 툴팁)
+    const nameTd = td(`<span class="row-name${t.sub ? ' sub' : ''}" title="${t.name.replace(/"/g, '&quot;')}">${t.name}</span>`, 'cell');
+    tr.appendChild(nameTd);
     // 5. 기획담당자
     const ownerEmpty = !t.owner || t.owner === '-' || t.owner === '미정';
     tr.appendChild(td(`<span class="owner${ownerEmpty ? ' empty' : ''}">${t.owner || '-'}</span>`, 'cell'));
