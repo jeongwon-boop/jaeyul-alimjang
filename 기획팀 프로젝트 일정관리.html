@@ -395,11 +395,11 @@
   const tasks = [
     // [공통]
     { cat:'공통', name:'리브랜딩 모바일 (1차)', owner:'심해란, 김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', bars:[{from:0, to:5, label:'QA'}], note:'' },
-    { cat:'공통', name:'ㄴ 검색개선', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', sub:true, bars:[{from:0, to:5, label:'QA'}], note:'' },
-    { cat:'공통', name:'ㄴ 검색개선 (AI 미니프로젝트)', owner:'김지혜', type:'플랫폼', priority:'하', deadline:'-', status:'QA', sub:true, bars:[], note:'' },
+    { cat:'공통', name:'ㄴ 검색개선', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'26년 5월', status:'QA', sub:true, parent:'리브랜딩 모바일 (1차)', bars:[{from:0, to:5, label:'QA'}], note:'' },
+    { cat:'공통', name:'ㄴ 검색개선 (AI 미니프로젝트)', owner:'김지혜', type:'플랫폼', priority:'하', deadline:'-', status:'QA', sub:true, parent:'리브랜딩 모바일 (1차)', bars:[], note:'' },
     { cat:'공통', name:'리브랜딩 모바일 (3차) 잔여이슈', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'08.26', period:'08.06~08.26', status:'대기', bars:[], planBars:[{from:8, to:8.75}], note:'스마트티켓 외 잔여이슈 / 기획 시작 전' },
     { cat:'공통', name:'리브랜딩 PC (2차)', owner:'김지혜', type:'플랫폼', priority:'상', deadline:'07.24', period:'06.15~07.24', status:'대기', bars:[], planBars:[{from:6.5, to:7.75}], note:'06.15~07.24 / 기획 시작 전' },
-    { cat:'공통', name:'결제선점 (PAYCO)', owner:'엄재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'기획', bars:[{from:0, to:5, label:''}], note:'' },
+    { cat:'공통', name:'결제선점 (PAYCO)', owner:'엄재홍', type:'플랫폼', priority:'상', deadline:'검토중', status:'검토', bars:[{from:0, to:5, label:''}], note:'' },
     { cat:'공통', name:'조계중', owner:'임은혜', type:'구축', priority:'중', deadline:'미정', status:'검토', bars:[], note:'' },
     { cat:'공통', name:'KREAM 연동 판매 관리 (연간)', owner:'엄재홍', type:'연동', priority:'중', deadline:'연간', status:'QA', bars:[{from:1, to:12, label:'런타스'}], note:'' },
     { cat:'공통', name:'기획전 투표기능 추가', owner:'임은혜', type:'플랫폼', priority:'하', deadline:'26년 9월', status:'대기', bars:[], note:'' },
@@ -517,6 +517,9 @@
       return norm(t.owner);
     }
     if (col === 'name') {
+      // 하위 항목(sub)은 부모 이름을 정렬 키로 사용 → 부모 바로 아래에 따라붙음
+      // (stable sort + 원본 배열 순서가 부모-자식 순이므로 유지됨)
+      if (t.parent) return t.parent;
       return (t.name || '').replace(/^ㄴ\s*/, '');
     }
     if (col === 'periodStart') {
