@@ -322,15 +322,6 @@
       <option value="대기">대기</option>
     </select>
   </div>
-  <div class="filter-group" title="해당 주차에 기획 또는 QA 단계가 진행 중인 프로젝트만 표시">
-    <span class="filter-label">🔍 시점 (기획/QA)</span>
-    <select class="filter-select" id="searchMonth">
-      <option value="">— 전체 —</option>
-    </select>
-    <select class="filter-select modal-week-select" id="searchWeek">
-      <option value="1">W1</option><option value="2">W2</option><option value="3">W3</option><option value="4">W4</option>
-    </select>
-  </div>
   <button class="filter-reset" id="resetFilters">↺ 초기화</button>
   <div class="legend">
     <div class="legend-item"><span class="phase-key plan"></span>기획</div>
@@ -500,12 +491,6 @@
     { col: 'name',   dir: 'asc' }, // 2차: 프로젝트명 가나다순
   ];
   let activeCat = 'all', activePrio = 'all', activeOwner = 'all', activeType = 'all', activeStatus = 'all', activeEffort = 'all';
-  let activeSearchTime = null; // 분수 month index. null = 미사용. 지정 시 해당 주차에 기획/QA가 활성인 task만 표시.
-
-  function isActivePhaseAt(t, time) {
-    const cover = bars => (bars || []).some(b => time >= b.from && time < b.to + 0.25);
-    return cover(t.planBars) || cover(t.qaBars);
-  }
 
   const PRIO_ORDER   = { '상': 0, '중': 1, '하': 2 };
   // 사용자 지정 우선순위: 기획 > QA > 개발 > 디자인 > 배포대기 > 검토 > 대기 > 배포완료
@@ -783,29 +768,6 @@
     });
   });
 
-  // 시점(월/주차) 검색 — 해당 주차에 기획/QA 단계가 활성인 프로젝트만 표시
-  (function setupSearchTime() {
-    const $month = document.getElementById('searchMonth');
-    const $week  = document.getElementById('searchWeek');
-    MONTH_LABELS.forEach((lbl, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = lbl;
-      $month.appendChild(opt);
-    });
-    function update() {
-      const m = $month.value;
-      const w = parseInt($week.value, 10) || 1;
-      activeSearchTime = m === '' ? null : (parseFloat(m) + (w - 1) * 0.25);
-      $month.classList.toggle('active', m !== '');
-      $week.classList.toggle('active', m !== '');
-      applyFilter();
-      updateResetButton();
-    }
-    $month.addEventListener('change', update);
-    $week.addEventListener('change', update);
-  })();
-
   document.getElementById('resetFilters').addEventListener('click', () => {
     FILTERS.forEach(f => {
       f.set('all');
@@ -813,18 +775,12 @@
       el.value = 'all';
       el.classList.remove('active');
     });
-    // 시점 검색도 초기화
-    activeSearchTime = null;
-    const $sm = document.getElementById('searchMonth');
-    const $sw = document.getElementById('searchWeek');
-    $sm.value = ''; $sw.value = '1';
-    $sm.classList.remove('active'); $sw.classList.remove('active');
     applyFilter();
     updateResetButton();
   });
 
   function updateResetButton() {
-    const hasActive = FILTERS.some(f => f.get() !== 'all') || activeSearchTime != null;
+    const hasActive = FILTERS.some(f => f.get() !== 'all');
     document.getElementById('resetFilters').classList.toggle('has-active', hasActive);
   }
 
@@ -836,15 +792,13 @@
 
   function applyFilter() {
     document.querySelectorAll('#ganttBody tr').forEach(tr => {
-      const t = tr._task;
       const okCat    = activeCat    === 'all' || tr.dataset.cat    === activeCat;
       const okPrio   = activePrio   === 'all' || tr.dataset.prio   === activePrio;
       const okType   = activeType   === 'all' || tr.dataset.type   === activeType;
       const okStatus = activeStatus === 'all' || tr.dataset.status === activeStatus;
       const okOwner  = activeOwner  === 'all' || matchOwner(tr.dataset.owner, activeOwner);
       const okEffort = activeEffort === 'all' || tr.dataset.effort === activeEffort;
-      const okTime   = activeSearchTime == null || (t && isActivePhaseAt(t, activeSearchTime));
-      tr.classList.toggle('hidden', !(okCat && okPrio && okType && okStatus && okOwner && okEffort && okTime));
+      tr.classList.toggle('hidden', !(okCat && okPrio && okType && okStatus && okOwner && okEffort));
     });
     renderSummary();
     renderOwnerDetail();
@@ -859,7 +813,6 @@
       if (activeType   !== 'all' && t.type     !== activeType)   return false;
       if (activeStatus !== 'all' && t.status   !== activeStatus) return false;
       if (activeOwner  !== 'all' && !matchOwner(t.owner, activeOwner)) return false;
-      if (activeSearchTime != null && !isActivePhaseAt(t, activeSearchTime)) return false;
       return true;
     });
   }
@@ -907,7 +860,6 @@
     if (activeType   !== 'all') filterParts.push(`유형: ${activeType}`);
     if (activePrio   !== 'all') filterParts.push(`우선순위: ${activePrio}`);
     if (activeStatus !== 'all') filterParts.push(`상태: ${activeStatus}`);
-    if (activeSearchTime != null) filterParts.push(`시점: ${monthWeekLabel(activeSearchTime)} (기획·QA 활성)`);
     const filterHint = filterParts.length
       ? `<span class="filter-hint">· 필터: ${filterParts.join(' · ')}</span>`
       : '';
