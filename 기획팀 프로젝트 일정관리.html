@@ -322,6 +322,12 @@
       <option value="대기">대기</option>
     </select>
   </div>
+  <div class="filter-group" title="해당 월에 기획 또는 QA 단계가 진행 중인 프로젝트만 표시">
+    <span class="filter-label">🔍 시점 (기획/QA)</span>
+    <select class="filter-select" id="searchMonth">
+      <option value="">— 전체 —</option>
+    </select>
+  </div>
   <button class="filter-reset" id="resetFilters">↺ 초기화</button>
   <div class="legend">
     <div class="legend-item"><span class="phase-key plan"></span>기획</div>
@@ -491,6 +497,13 @@
     { col: 'name',   dir: 'asc' }, // 2차: 프로젝트명 가나다순
   ];
   let activeCat = 'all', activePrio = 'all', activeOwner = 'all', activeType = 'all', activeStatus = 'all', activeEffort = 'all';
+  let activeSearchMonth = null; // 정수 month index. null = 미사용. 해당 월에 기획/QA 활성인 task만 표시.
+
+  function isActivePhaseInMonth(t, m) {
+    // 월 m의 범위는 [m, m+1). bar가 이 범위와 겹치면 활성으로 간주
+    const overlap = bars => (bars || []).some(b => b.from < m + 1 && b.to + 0.25 > m);
+    return overlap(t.planBars) || overlap(t.qaBars);
+  }
 
   const PRIO_ORDER   = { '상': 0, '중': 1, '하': 2 };
   // 사용자 지정 우선순위: 기획 > QA > 개발 > 디자인 > 배포대기 > 검토 > 대기 > 배포완료
@@ -768,6 +781,24 @@
     });
   });
 
+  // 시점(월) 검색 — 해당 월에 기획/QA가 활성인 프로젝트만 표시
+  (function setupSearchMonth() {
+    const $sm = document.getElementById('searchMonth');
+    MONTH_LABELS.forEach((lbl, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = lbl;
+      $sm.appendChild(opt);
+    });
+    $sm.addEventListener('change', () => {
+      const v = $sm.value;
+      activeSearchMonth = v === '' ? null : parseInt(v, 10);
+      $sm.classList.toggle('active', v !== '');
+      applyFilter();
+      updateResetButton();
+    });
+  })();
+
   document.getElementById('resetFilters').addEventListener('click', () => {
     FILTERS.forEach(f => {
       f.set('all');
@@ -775,12 +806,16 @@
       el.value = 'all';
       el.classList.remove('active');
     });
+    activeSearchMonth = null;
+    const $sm = document.getElementById('searchMonth');
+    $sm.value = '';
+    $sm.classList.remove('active');
     applyFilter();
     updateResetButton();
   });
 
   function updateResetButton() {
-    const hasActive = FILTERS.some(f => f.get() !== 'all');
+    const hasActive = FILTERS.some(f => f.get() !== 'all') || activeSearchMonth != null;
     document.getElementById('resetFilters').classList.toggle('has-active', hasActive);
   }
 
@@ -792,13 +827,15 @@
 
   function applyFilter() {
     document.querySelectorAll('#ganttBody tr').forEach(tr => {
+      const t = tr._task;
       const okCat    = activeCat    === 'all' || tr.dataset.cat    === activeCat;
       const okPrio   = activePrio   === 'all' || tr.dataset.prio   === activePrio;
       const okType   = activeType   === 'all' || tr.dataset.type   === activeType;
       const okStatus = activeStatus === 'all' || tr.dataset.status === activeStatus;
       const okOwner  = activeOwner  === 'all' || matchOwner(tr.dataset.owner, activeOwner);
       const okEffort = activeEffort === 'all' || tr.dataset.effort === activeEffort;
-      tr.classList.toggle('hidden', !(okCat && okPrio && okType && okStatus && okOwner && okEffort));
+      const okMonth  = activeSearchMonth == null || (t && isActivePhaseInMonth(t, activeSearchMonth));
+      tr.classList.toggle('hidden', !(okCat && okPrio && okType && okStatus && okOwner && okEffort && okMonth));
     });
     renderSummary();
     renderOwnerDetail();
@@ -813,6 +850,7 @@
       if (activeType   !== 'all' && t.type     !== activeType)   return false;
       if (activeStatus !== 'all' && t.status   !== activeStatus) return false;
       if (activeOwner  !== 'all' && !matchOwner(t.owner, activeOwner)) return false;
+      if (activeSearchMonth != null && !isActivePhaseInMonth(t, activeSearchMonth)) return false;
       return true;
     });
   }
@@ -860,6 +898,7 @@
     if (activeType   !== 'all') filterParts.push(`유형: ${activeType}`);
     if (activePrio   !== 'all') filterParts.push(`우선순위: ${activePrio}`);
     if (activeStatus !== 'all') filterParts.push(`상태: ${activeStatus}`);
+    if (activeSearchMonth != null) filterParts.push(`시점: ${MONTH_LABELS[activeSearchMonth]} (기획·QA 활성)`);
     const filterHint = filterParts.length
       ? `<span class="filter-hint">· 필터: ${filterParts.join(' · ')}</span>`
       : '';
